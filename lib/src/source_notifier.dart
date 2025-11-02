@@ -10,20 +10,27 @@ class SourceNotifier<T> {
   var _mounted = true;
   T _state;
 
+  /// Initialize [state].
   SourceNotifier(this._state);
 
-  @protected
+  /// Whether [dispose] was called or not.
   bool get mounted => _mounted;
 
   Source<T> get source => _Source(this);
 
+  /// The current "state" of this [StateNotifier].
+  ///
+  /// Updating this variable will synchronously call all the listeners.
+  /// Notifying the listeners is O(N) with N the number of listeners.
   @protected
+  @visibleForTesting
   T get state {
     assert(_debugIsMounted());
     return _state;
   }
 
   @protected
+  @visibleForTesting
   set state(T state) {
     assert(_debugIsMounted());
 
@@ -45,6 +52,16 @@ class SourceNotifier<T> {
     }
   }
 
+  /// If a listener has been added using [source] and hasn't been removed yet.
+  bool get hasListeners {
+    assert(_debugIsMounted(), '');
+    return _listeners.isNotEmpty;
+  }
+
+  /// Frees all the resources associated with this object.
+  ///
+  /// This marks the object as no longer usable and will make all methods/properties
+  /// besides [mounted] inaccessible.
   @mustCallSuper
   void dispose() {
     assert(_debugIsMounted());
@@ -61,17 +78,29 @@ class SourceNotifier<T> {
   }
 }
 
+/// A [SourceNotifier] that allows modifying its [state] from outside.
+///
+/// This avoids having to make a [SourceNotifier] subclass for simple scenarios.
 class SourceController<T> extends SourceNotifier<T> {
+  /// Initialize the state of [SourceController].
   SourceController(super._state);
 
+  // Remove the protected status
   @override
   T get state => super.state;
 
   @override
   set state(T state) => super.state = state;
+
+  /// Calls a function with the current [state] and assigns the result as the
+  /// new state.
+  T update(T Function(T state) updates) => state = updates(state);
+
+  /// Equals to a [SourceController.state] setter
+  void emit(T state) => this.state = state;
 }
 
-class _Source<T> extends Source<T> {
+final class _Source<T> extends Source<T> {
   final SourceNotifier<T> _notifier;
 
   _Source(this._notifier);
@@ -80,7 +109,7 @@ class _Source<T> extends Source<T> {
   SourceSubscription<T> listen(SourceListener<T> listener) {
     assert(_notifier._debugIsMounted());
     final listenersEntry = _ListenersEntry(listener);
-    _notifier._listeners.addFirst(listenersEntry);
+    _notifier._listeners.add(listenersEntry);
     return _SourceSubscription(_notifier, listenersEntry);
   }
 

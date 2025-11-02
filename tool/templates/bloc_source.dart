@@ -2,7 +2,7 @@
 
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rivertion/rivertion.dart';
 // ignore: implementation_imports
 import 'package:rivertion/src/internals.dart';
@@ -15,7 +15,7 @@ extension SourceStateStreamableExtension<T> on StateStreamable<T> {
       source.selectWith(arg, selector);
 }
 
-class _StateStreamableSource<T> extends Source<T> {
+final class _StateStreamableSource<T> extends Source<T> {
   final StateStreamable<T> _stateStreamable;
 
   _StateStreamableSource(this._stateStreamable);

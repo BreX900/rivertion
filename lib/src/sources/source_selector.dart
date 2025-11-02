@@ -4,25 +4,18 @@ import 'package:meta/meta.dart';
 import 'package:rivertion/src/internals.dart';
 import 'package:rivertion/src/source.dart';
 
-extension SelectSourceExtension<T> on Source<T> {
-  Source<R> select<R>(R Function(T state) selector) => _SourceSelector(this, selector);
-
-  Source<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>
-      _SourceArgSelector(this, arg, selector);
-}
-
-final class _SourceSelector<T, R> extends _SourceTransformer<T, R> {
+final class SourceSelector<T, R> extends _SourceTransformer<T, R> {
   final R Function(T state) selector;
 
-  _SourceSelector(super.source, this.selector);
+  SourceSelector(super.source, this.selector);
 
   @override
-  R select(T state) => selector(state);
+  R _select(T state) => selector(state);
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _SourceArgSelector &&
+      other is SourceArgSelector &&
           runtimeType == other.runtimeType &&
           source == other.source &&
           selector == other.selector;
@@ -31,19 +24,19 @@ final class _SourceSelector<T, R> extends _SourceTransformer<T, R> {
   int get hashCode => Object.hash(source, selector);
 }
 
-final class _SourceArgSelector<T, R, A> extends _SourceTransformer<T, R> {
+final class SourceArgSelector<T, R, A> extends _SourceTransformer<T, R> {
   final A arg;
   final R Function(A arg, T value) selector;
 
-  _SourceArgSelector(super.source, this.arg, this.selector);
+  SourceArgSelector(super.source, this.arg, this.selector);
 
   @override
-  R select(T state) => selector(arg, state);
+  R _select(T state) => selector(arg, state);
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _SourceArgSelector &&
+      other is SourceArgSelector &&
           runtimeType == other.runtimeType &&
           source == other.source &&
           arg == other.arg &&
@@ -59,20 +52,20 @@ abstract base class _SourceTransformer<T, R> extends Source<R> {
 
   _SourceTransformer(this.source);
 
-  R select(T state);
+  R _select(T state);
 
   @override
   SourceSubscription<R> listen(SourceListener<R> listener) {
     _Optional<R>? current;
     final subscription = source.listen((previousState, currentState) {
-      final previous = current ?? _Optional(select(previousState));
-      final next = _Optional(select(currentState));
+      final previous = current ?? _Optional(_select(previousState));
+      final next = _Optional(_select(currentState));
       current = next;
       if (previous.value == next.value) return;
       Zone.current.runBinaryGuarded(listener, previous.value, next.value);
     });
     return _SourceTransformerSubscription(subscription, () {
-      return (current ??= _Optional(select(subscription.read()))).value;
+      return (current ??= _Optional(_select(subscription.read()))).value;
     });
   }
 }

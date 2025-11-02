@@ -139,7 +139,7 @@ class FormControlState<V> extends AbstractControlState<V?> {
   int get hashCode => Object.hash(value, pristine, touched, errors, status, hasFocus);
 }
 
-class _AbstractControlStateSource<V>
+final class _AbstractControlStateSource<V>
     extends _AbstractControlStateSourceBase<AbstractControl<V>, AbstractControlState<V?>> {
   _AbstractControlStateSource(super.control);
 
@@ -155,7 +155,7 @@ class _AbstractControlStateSource<V>
   }
 }
 
-class _FormControlStateSource<V>
+final class _FormControlStateSource<V>
     extends _AbstractControlStateSourceBase<FormControl<V>, FormControlState<V>> {
   _FormControlStateSource(super.control);
 
@@ -175,7 +175,7 @@ class _FormControlStateSource<V>
   }
 }
 
-abstract class _AbstractControlStateSourceBase<
+abstract base class _AbstractControlStateSourceBase<
   TControl extends AbstractControl<Object?>,
   TState extends AbstractControlState<Object?>
 >
@@ -218,7 +218,7 @@ abstract class _AbstractControlStateSourceBase<
   int get hashCode => control.hashCode;
 }
 
-class _FormControlSource<TControl extends AbstractControl<Object?>> extends Source<TControl> {
+final class _FormControlSource<TControl extends AbstractControl<Object?>> extends Source<TControl> {
   final TControl control;
 
   _FormControlSource(this.control);
@@ -277,7 +277,6 @@ final class _ControlSubscription<T> extends SourceSubscriptionBase<T> {
 }
 ''',
   );
-  
 
   static const (String, String) blocSource = (
     'bloc_source.dart',
@@ -286,7 +285,7 @@ final class _ControlSubscription<T> extends SourceSubscriptionBase<T> {
 
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rivertion/rivertion.dart';
 // ignore: implementation_imports
 import 'package:rivertion/src/internals.dart';
@@ -299,7 +298,7 @@ extension SourceStateStreamableExtension<T> on StateStreamable<T> {
       source.selectWith(arg, selector);
 }
 
-class _StateStreamableSource<T> extends Source<T> {
+final class _StateStreamableSource<T> extends Source<T> {
   final StateStreamable<T> _stateStreamable;
 
   _StateStreamableSource(this._stateStreamable);
@@ -343,7 +342,6 @@ final class _StateStreamableSourceSubscription<T> extends SourceSubscriptionBase
 }
 ''',
   );
-  
 
   static const (String, String) riverpodSourceConsumer = (
     'riverpod_source_consumer.dart',
@@ -420,7 +418,7 @@ extension SourceStateNotifierExtension<T> on StateNotifier<T> {
       source.selectWith(arg, selector);
 }
 
-class _NotifierStateSource<T> extends Source<T> {
+final class _NotifierStateSource<T> extends Source<T> {
   final StateNotifier<T> _notifier;
 
   _NotifierStateSource(this._notifier);
@@ -463,7 +461,6 @@ final class _NotifierStateSourceSubscription<T> extends SourceSubscriptionBase<T
 }
 ''',
   );
-  
 
   static const (String, String) riverpodMutation = (
     'riverpod_mutation.dart',
@@ -472,6 +469,8 @@ final class _NotifierStateSourceSubscription<T> extends SourceSubscriptionBase<T
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:rivertion/rivertion.dart';
@@ -715,9 +714,6 @@ sealed class MutationState<TData> {
       success: (state) => success?.call(state.data),
     );
   }
-
-  @override
-  Map<String, Object?> get props => {'args': args};
 }
 
 class IdleMutation<TData> extends MutationState<TData> {
@@ -732,6 +728,16 @@ class IdleMutation<TData> extends MutationState<TData> {
   }) {
     return idle(this);
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is IdleMutation<TData> &&
+          runtimeType == other.runtimeType &&
+          setEquals(args, other.args);
+
+  @override
+  int get hashCode => args.hashCode;
 }
 
 class LoadingMutation<TData> extends MutationState<TData> {
@@ -741,7 +747,15 @@ class LoadingMutation<TData> extends MutationState<TData> {
   const LoadingMutation({required super.args, required this.status});
 
   @override
-  Map<String, Object?> get props => super.props..['status'] = status;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LoadingMutation<TData> &&
+          runtimeType == other.runtimeType &&
+          setEquals(args, other.args) &&
+          mapEquals(status, other.status);
+
+  @override
+  int get hashCode => Object.hash(args, status);
 }
 
 class FailedMutation<TData> extends MutationState<TData> {
@@ -750,7 +764,15 @@ class FailedMutation<TData> extends MutationState<TData> {
   const FailedMutation({required super.args, required this.error});
 
   @override
-  Map<String, Object?> get props => super.props..['error'] = error;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FailedMutation<TData> &&
+          runtimeType == other.runtimeType &&
+          setEquals(args, other.args) &&
+          error == other.error;
+
+  @override
+  int get hashCode => Object.hash(args, error);
 }
 
 class SuccessMutation<TData> extends MutationState<TData> {
@@ -759,7 +781,14 @@ class SuccessMutation<TData> extends MutationState<TData> {
   const SuccessMutation({required super.args, required this.data});
 
   @override
-  Map<String, Object?> get props => super.props..['data'] = data;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SuccessMutation<TData> &&
+          runtimeType == other.runtimeType &&
+          const DeepCollectionEquality().equals(data, other.data);
+
+  @override
+  int get hashCode => Object.hash(args, data);
 }
 
 class _MutationRef<TArg> extends MutationRef {
@@ -777,6 +806,4 @@ class _MutationRef<TArg> extends MutationRef {
 }
 ''',
   );
-  
 }
-    

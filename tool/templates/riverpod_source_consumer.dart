@@ -70,7 +70,7 @@ extension SourceStateNotifierExtension<T> on StateNotifier<T> {
       source.selectWith(arg, selector);
 }
 
-class _NotifierStateSource<T> extends Source<T> {
+final class _NotifierStateSource<T> extends Source<T> {
   final StateNotifier<T> _notifier;
 
   _NotifierStateSource(this._notifier);

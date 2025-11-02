@@ -28,3 +28,19 @@ abstract base class SourceSubscriptionBase<T> extends SourceSubscription<T> {
     return true;
   }
 }
+
+final class SourceSubscriptionProxy<T> extends SourceSubscription<T> {
+  final SourceSubscription<T> proxy;
+  final void Function() onCancel;
+
+  SourceSubscriptionProxy(this.proxy, this.onCancel);
+
+  @override
+  void cancel() {
+    proxy.cancel();
+    onCancel();
+  }
+
+  @override
+  T read() => proxy.read();
+}

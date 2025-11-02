@@ -17,7 +17,7 @@ ${templates.map((template) {
 $content''',
   );
   """;
-  }).join('\n\n')}
+  }).join('\n')}
 }
     ''');
 }

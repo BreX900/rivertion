@@ -135,7 +135,7 @@ class FormControlState<V> extends AbstractControlState<V?> {
   int get hashCode => Object.hash(value, pristine, touched, errors, status, hasFocus);
 }
 
-class _AbstractControlStateSource<V>
+final class _AbstractControlStateSource<V>
     extends _AbstractControlStateSourceBase<AbstractControl<V>, AbstractControlState<V?>> {
   _AbstractControlStateSource(super.control);
 
@@ -151,7 +151,7 @@ class _AbstractControlStateSource<V>
   }
 }
 
-class _FormControlStateSource<V>
+final class _FormControlStateSource<V>
     extends _AbstractControlStateSourceBase<FormControl<V>, FormControlState<V>> {
   _FormControlStateSource(super.control);
 
@@ -171,7 +171,7 @@ class _FormControlStateSource<V>
   }
 }
 
-abstract class _AbstractControlStateSourceBase<
+abstract base class _AbstractControlStateSourceBase<
   TControl extends AbstractControl<Object?>,
   TState extends AbstractControlState<Object?>
 >
@@ -214,7 +214,7 @@ abstract class _AbstractControlStateSourceBase<
   int get hashCode => control.hashCode;
 }
 
-class _FormControlSource<TControl extends AbstractControl<Object?>> extends Source<TControl> {
+final class _FormControlSource<TControl extends AbstractControl<Object?>> extends Source<TControl> {
   final TControl control;
 
   _FormControlSource(this.control);

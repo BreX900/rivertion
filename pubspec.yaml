@@ -1,6 +1,6 @@
 name: rivertion
-description: "A Flutter state management library that bridges the gap between traditional state holders (like `ValueNotifier`, `ChangeNotifier`, and `Bloc`) and a modern, reactive consumption model inspired by Riverpod."
-version: 3.0.0
+description: A Flutter state management library that bridges the gap between traditional state holders and a modern, reactive consumption model.
+version: 3.1.0
 homepage: https://github.com/BreX900/mek-packages/tree/main/rivertion
 
 environment:
@@ -8,7 +8,7 @@ environment:
   flutter: '>=3.32.0'
 
 scripts:
-  publish: dart pub publish
+  publish: dart run tool/generate_templates.dart && dart format . && dart pub publish
 
 dependencies:
   flutter: { sdk: flutter }
@@ -25,7 +25,7 @@ dev_dependencies:
   collection: ^1.19.1
   flutter_riverpod: ^3.0.3
   reactive_forms: ^18.1.1
-  bloc: ^9.1.0
+  flutter_bloc: ^9.1.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

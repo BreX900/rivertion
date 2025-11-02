@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:rivertion/src/internals.dart';
 import 'package:rivertion/src/source.dart';
-import 'package:rivertion/src/sources/source_selector.dart';
 
 extension SourceListenableExtension<T extends Listenable> on T {
   Source<R> sourceBy<R>(R Function(T listenable) selector) => _ListenableSource(this, selector);
@@ -19,7 +18,7 @@ extension SourceValueListenableExtension<T> on ValueListenable<T> {
   static T _selectValue<T>(ValueListenable<T> listenable) => listenable.value;
 }
 
-class _ListenableSource<T extends Listenable, R> extends Source<R> {
+final class _ListenableSource<T extends Listenable, R> extends Source<R> {
   final T listenable;
   final R Function(T listenable) selector;
 

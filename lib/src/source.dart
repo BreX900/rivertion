@@ -1,13 +1,15 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
+import 'package:rivertion/src/sources/source_filter.dart';
+import 'package:rivertion/src/sources/source_selector.dart';
 
 typedef SourceListener<T> = void Function(T previous, T state);
 
 typedef SourceImmediatelyListener<T> = void Function(T? previous, T state);
 
 @immutable
-abstract class Source<T> {
+abstract base class Source<T> {
   SourceSubscription<T> listen(SourceListener<T> onChange);
 
   SourceSubscription<T> listenImmediately(SourceImmediatelyListener<T> listener) {
@@ -15,6 +17,13 @@ abstract class Source<T> {
     Zone.current.runBinaryGuarded(listener, null, subscription.read());
     return subscription;
   }
+
+  Source<T> where(bool Function(T previous, T next) condition) => SourceFilter(this, condition);
+
+  Source<R> select<R>(R Function(T state) selector) => SourceSelector(this, selector);
+
+  Source<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>
+      SourceArgSelector(this, arg, selector);
 }
 
 abstract base class SourceSubscription<T> {

@@ -8,14 +8,17 @@ import 'package:bloc/bloc.dart';
 import 'package:rivertion/src/internals.dart';
 
 extension SourceStateStreamableExtension<T> on StateStreamable<T> {
-  Source<T> get source => _StateStreamableSource(this);
+  SourceListenable<T> get source => _StateStreamableSource(this);
 
-  Source<R> select<R>(R Function(T state) selector) => source.select(selector);
-  Source<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>
+  SourceListenable<R> select<R>(R Function(T state) selector) => source.select(selector);
+
+  SourceListenable<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>
       source.selectWith(arg, selector);
+
+  SourceListenable<T> where(bool Function(T previous, T next) condition) => source.where(condition);
 }
 
-final class _StateStreamableSource<T> extends Source<T> {
+final class _StateStreamableSource<T> extends SourceListenable<T> {
   final StateStreamable<T> _stateStreamable;
 
   _StateStreamableSource(this._stateStreamable);

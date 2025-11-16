@@ -62,14 +62,17 @@ final class _SourceConsumerStatefulElement extends ConsumerStatefulElement
 }
 
 extension SourceStateNotifierExtension<T> on StateNotifier<T> {
-  Source<T> get source => _NotifierStateSource(this);
+  SourceListenable<T> get source => _NotifierStateSource(this);
 
-  Source<R> select<R>(R Function(T state) selector) => source.select(selector);
-  Source<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>
+  SourceListenable<R> select<R>(R Function(T state) selector) => source.select(selector);
+
+  SourceListenable<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>
       source.selectWith(arg, selector);
+
+  SourceListenable<T> where(bool Function(T previous, T next) condition) => source.where(condition);
 }
 
-final class _NotifierStateSource<T> extends Source<T> {
+final class _NotifierStateSource<T> extends SourceListenable<T> {
   final StateNotifier<T> _notifier;
 
   _NotifierStateSource(this._notifier);

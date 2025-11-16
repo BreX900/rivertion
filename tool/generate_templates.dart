@@ -16,7 +16,7 @@ ${templates.map((template) {
     ${content.contains('\$') ? 'r' : ''}'''
 $content''',
   );
-  """;
+""";
   }).join('\n')}
 }
     ''');

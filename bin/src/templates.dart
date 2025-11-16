@@ -12,25 +12,26 @@ import 'package:reactive_forms/reactive_forms.dart';
 import 'package:rivertion/src/internals.dart';
 
 extension AbstractControlStateSource<V> on AbstractControl<V> {
-  Source<AbstractControlState<V?>> get source => _AbstractControlStateSource(this);
+  SourceListenable<AbstractControlState<V?>> get source => _AbstractControlStateSource(this);
 
-  Source<R> select<R>(R Function(AbstractControl<V> control) selector) =>
+  SourceListenable<R> select<R>(R Function(AbstractControl<V> control) selector) =>
       _FormControlSource(this).select(selector);
 }
 
 extension ControlStateSource<C extends AbstractControl<Object?>> on C {
-  Source<R> select<R>(R Function(C control) selector) => _FormControlSource(this).select(selector);
+  SourceListenable<R> select<R>(R Function(C control) selector) =>
+      _FormControlSource(this).select(selector);
 }
 
-extension AbstractControlStateSourceExtensions<V> on Source<AbstractControlState<V>> {
-  Source<bool> get hasValue => select(_hasValue);
-  Source<V?> get value => select(_value);
-  Source<bool> get pristine => select(_pristine);
-  Source<bool> get dirty => select(_dirty);
-  Source<bool> get touched => select(_touched);
-  Source<ControlStatus> get status => select(_status);
-  Source<MapEntry<String, Object>?> get error => select(_error);
-  Source<bool> get isEmpty => select(_isEmpty);
+extension AbstractControlStateSourceExtensions<V> on SourceListenable<AbstractControlState<V>> {
+  SourceListenable<bool> get hasValue => select(_hasValue);
+  SourceListenable<V?> get value => select(_value);
+  SourceListenable<bool> get pristine => select(_pristine);
+  SourceListenable<bool> get dirty => select(_dirty);
+  SourceListenable<bool> get touched => select(_touched);
+  SourceListenable<ControlStatus> get status => select(_status);
+  SourceListenable<MapEntry<String, Object>?> get error => select(_error);
+  SourceListenable<bool> get isEmpty => select(_isEmpty);
 
   static bool _hasValue<V>(AbstractControlState<V> state) => state.value != null;
   static V? _value<V>(AbstractControlState<V> state) => state.value;
@@ -48,10 +49,10 @@ extension AbstractControlStateSourceExtensions<V> on Source<AbstractControlState
   }
 }
 
-extension ControlStatusSourceExtensions on Source<ControlStatus> {
-  Source<bool> get enabled => select(_enabled);
-  Source<bool> get disabled => select(_disabled);
-  Source<bool> get valid => select(_valid);
+extension ControlStatusSourceExtensions on SourceListenable<ControlStatus> {
+  SourceListenable<bool> get enabled => select(_enabled);
+  SourceListenable<bool> get disabled => select(_disabled);
+  SourceListenable<bool> get valid => select(_valid);
 
   static bool _enabled(ControlStatus status) => status != ControlStatus.disabled;
   static bool _disabled(ControlStatus status) => status == ControlStatus.disabled;
@@ -59,11 +60,11 @@ extension ControlStatusSourceExtensions on Source<ControlStatus> {
 }
 
 extension FormControlStateSource<V> on FormControl<V> {
-  Source<FormControlState<V>> get source => _FormControlStateSource(this);
+  SourceListenable<FormControlState<V>> get source => _FormControlStateSource(this);
 }
 
-extension FormControlStateSourceExtensions<V> on Source<FormControlState<V?>> {
-  Source<bool> get hasFocus => select(_hasFocus);
+extension FormControlStateSourceExtensions<V> on SourceListenable<FormControlState<V?>> {
+  SourceListenable<bool> get hasFocus => select(_hasFocus);
 
   static bool _hasFocus<V>(FormControlState<V?> state) => state.hasFocus;
 }
@@ -97,7 +98,7 @@ class AbstractControlState<V> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AbstractControlState &&
+      other is AbstractControlState<V> &&
           runtimeType == other.runtimeType &&
           value == other.value &&
           pristine == other.pristine &&
@@ -178,7 +179,7 @@ abstract base class _AbstractControlStateSourceBase<
   TControl extends AbstractControl<Object?>,
   TState extends AbstractControlState<Object?>
 >
-    extends Source<TState> {
+    extends SourceListenable<TState> {
   final TControl control;
 
   _AbstractControlStateSourceBase(this.control);
@@ -209,7 +210,7 @@ abstract base class _AbstractControlStateSourceBase<
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _AbstractControlStateSourceBase &&
+      other is _AbstractControlStateSourceBase<TControl, TState> &&
           runtimeType == other.runtimeType &&
           control == other.control;
 
@@ -217,7 +218,8 @@ abstract base class _AbstractControlStateSourceBase<
   int get hashCode => control.hashCode;
 }
 
-final class _FormControlSource<TControl extends AbstractControl<Object?>> extends Source<TControl> {
+final class _FormControlSource<TControl extends AbstractControl<Object?>>
+    extends SourceListenable<TControl> {
   final TControl control;
 
   _FormControlSource(this.control);
@@ -240,7 +242,7 @@ final class _FormControlSource<TControl extends AbstractControl<Object?>> extend
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _AbstractControlStateSourceBase &&
+      other is _FormControlSource<TControl> &&
           runtimeType == other.runtimeType &&
           control == other.control;
 
@@ -276,7 +278,7 @@ final class _ControlSubscription<T> extends SourceSubscriptionBase<T> {
 }
 ''',
   );
-  
+
   static const (String, String) blocSource = (
     'bloc_source.dart',
     '''
@@ -290,14 +292,17 @@ import 'package:bloc/bloc.dart';
 import 'package:rivertion/src/internals.dart';
 
 extension SourceStateStreamableExtension<T> on StateStreamable<T> {
-  Source<T> get source => _StateStreamableSource(this);
+  SourceListenable<T> get source => _StateStreamableSource(this);
 
-  Source<R> select<R>(R Function(T state) selector) => source.select(selector);
-  Source<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>
+  SourceListenable<R> select<R>(R Function(T state) selector) => source.select(selector);
+
+  SourceListenable<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>
       source.selectWith(arg, selector);
+
+  SourceListenable<T> where(bool Function(T previous, T next) condition) => source.where(condition);
 }
 
-final class _StateStreamableSource<T> extends Source<T> {
+final class _StateStreamableSource<T> extends SourceListenable<T> {
   final StateStreamable<T> _stateStreamable;
 
   _StateStreamableSource(this._stateStreamable);
@@ -341,7 +346,7 @@ final class _StateStreamableSourceSubscription<T> extends SourceSubscriptionBase
 }
 ''',
   );
-  
+
   static const (String, String) riverpodSourceConsumer = (
     'riverpod_source_consumer.dart',
     '''
@@ -409,14 +414,17 @@ final class _SourceConsumerStatefulElement extends ConsumerStatefulElement
 }
 
 extension SourceStateNotifierExtension<T> on StateNotifier<T> {
-  Source<T> get source => _NotifierStateSource(this);
+  SourceListenable<T> get source => _NotifierStateSource(this);
 
-  Source<R> select<R>(R Function(T state) selector) => source.select(selector);
-  Source<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>
+  SourceListenable<R> select<R>(R Function(T state) selector) => source.select(selector);
+
+  SourceListenable<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>
       source.selectWith(arg, selector);
+
+  SourceListenable<T> where(bool Function(T previous, T next) condition) => source.where(condition);
 }
 
-final class _NotifierStateSource<T> extends Source<T> {
+final class _NotifierStateSource<T> extends SourceListenable<T> {
   final StateNotifier<T> _notifier;
 
   _NotifierStateSource(this._notifier);
@@ -459,7 +467,7 @@ final class _NotifierStateSourceSubscription<T> extends SourceSubscriptionBase<T
 }
 ''',
   );
-  
+
   static const (String, String) riverpodMutation = (
     'riverpod_mutation.dart',
     r'''
@@ -821,6 +829,4 @@ class _MutationRef<TArg> extends MutationRef {
 }
 ''',
   );
-  
 }
-    

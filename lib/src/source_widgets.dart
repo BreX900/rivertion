@@ -74,10 +74,10 @@ abstract interface class SourceRef {
   ///
   /// See also:
   ///
-  /// - [Source.select], which allows a widget to filter rebuilds by
+  /// - [SourceListenable.select], which allows a widget to filter rebuilds by
   ///   observing only the selected properties.
   /// - [listenSource], to react to changes on a source, such as for showing modals.
-  T watchSource<T>(SourceProvider<T> provider);
+  T watchSource<T>(Source<T> source);
 
   /// Listen to a source and call `listener` whenever its value changes,
   /// without having to take care of removing the listener.
@@ -153,7 +153,7 @@ abstract interface class SourceRef {
   /// - [read], to read a provider without listening to it.
   ///
   /// This is useful for showing modals or other imperative logic.
-  void listenSource<T>(SourceProvider<T> provider, SourceListener<T> listener);
+  void listenSource<T>(Source<T> source, SourceListener<T> listener);
 
   /// Listen to a source and call `listener` whenever its value changes.
   ///
@@ -170,7 +170,7 @@ abstract interface class SourceRef {
   /// When the widget that calls [listenSourceManual] is disposed, the subscription
   /// will be disposed automatically.
   SourceSubscription<T> listenSourceManual<T>(
-    SourceProvider<T> provider,
+    Source<T> source,
     void Function(T? previous, T state) listener, {
     bool fireImmediately = false,
   });

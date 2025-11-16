@@ -8,7 +8,7 @@ environment:
   flutter: '>=3.32.0'
 
 scripts:
-  publish: dart run tool/generate_templates.dart && dart format . && dart pub publish
+  publish: flutter test && dart run tool/generate_templates.dart && dart format . && dart pub publish
 
 dependencies:
   flutter: { sdk: flutter }
@@ -25,7 +25,7 @@ dev_dependencies:
   collection: ^1.19.1
   flutter_riverpod: ^3.0.3
   reactive_forms: ^18.1.1
-  flutter_bloc: ^9.1.0
+  bloc: ^9.1.0
 
   flutter_test: { sdk: flutter }
   mocktail: ^1.0.4

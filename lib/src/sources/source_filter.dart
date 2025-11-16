@@ -1,20 +1,20 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
+import 'package:rivertion/src/internals/source_listenable_extension.dart';
 import 'package:rivertion/src/source.dart';
 
 @immutable
-final class SourceFilter<T> extends Source<T> {
-  @override
-  final Source<T> source;
-  final bool Function(T previous, T next) condition;
+final class SourceFilter<T> extends SourceListenable<T> {
+  final Source<T> _source;
+  final bool Function(T previous, T next) _condition;
 
-  SourceFilter(this.source, this.condition);
+  SourceFilter(this._source, this._condition);
 
   @override
   SourceSubscription<T> listen(SourceListener<T> listener) {
-    return source.listen((previous, next) {
-      if (!condition(previous, next)) return;
+    return _source.listenable.listen((previous, next) {
+      if (!_condition(previous, next)) return;
       Zone.current.runBinaryGuarded(listener, previous, next);
     });
   }
@@ -24,9 +24,9 @@ final class SourceFilter<T> extends Source<T> {
       identical(this, other) ||
       other is SourceFilter<T> &&
           runtimeType == other.runtimeType &&
-          source == other.source &&
-          condition == other.condition;
+          _source == other._source &&
+          _condition == other._condition;
 
   @override
-  int get hashCode => Object.hash(source, condition);
+  int get hashCode => Object.hash(_source, _condition);
 }

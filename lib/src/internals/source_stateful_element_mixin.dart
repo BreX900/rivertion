@@ -2,15 +2,18 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:rivertion/src/internals.dart';
+import 'package:rivertion/src/internals/source_listenable_extension.dart';
+import 'package:rivertion/src/internals/source_subscriptions.dart';
+import 'package:rivertion/src/source.dart';
+import 'package:rivertion/src/source_widgets.dart';
 
 /// The [Element] mixin for a [StatefulElement]
 mixin SourceStatefulElementMixin on StatefulElement implements SourceRef {
   ValueListenable<bool>? _tickerNotifier;
   var _isDirty = false;
   final _listenerRemovers = <VoidCallback>[];
-  var _dependencies = <SourceProvider<Object?>, SourceSubscription<Object?>>{};
-  var _oldDependencies = <SourceProvider<Object?>, SourceSubscription<Object?>>{};
+  var _dependencies = <Source<Object?>, SourceSubscription<Object?>>{};
+  var _oldDependencies = <Source<Object?>, SourceSubscription<Object?>>{};
   final _onDisposeListeners = <VoidCallback>[];
 
   @override
@@ -52,28 +55,28 @@ mixin SourceStatefulElementMixin on StatefulElement implements SourceRef {
   }
 
   @override
-  T watchSource<T>(SourceProvider<T> provider) {
+  T watchSource<T>(Source<T> source) {
     _assertNotDisposed();
-    final subscription = _dependencies.putIfAbsent(provider, () {
-      return provider.source.listen(_listenerForRebuild);
+    final subscription = _dependencies.putIfAbsent(source, () {
+      return source.listenable.listen(_listenerForRebuild);
     });
     return subscription.read() as T;
   }
 
   @override
-  void listenSource<T>(SourceProvider<T> provider, SourceListener<T> listener) {
+  void listenSource<T>(Source<T> source, SourceListener<T> listener) {
     _assertNotDisposed();
-    _listenerRemovers.add(provider.source.listen(listener).cancel);
+    _listenerRemovers.add(source.listenable.listen(listener).cancel);
   }
 
   @override
   SourceSubscription<T> listenSourceManual<T>(
-    SourceProvider<T> provider,
+    Source<T> source,
     void Function(T? previous, T state) listener, {
     bool fireImmediately = false,
   }) {
     _assertNotDisposed();
-    final subscription = provider.source.listen(listener);
+    final subscription = source.listenable.listen(listener);
     _onDisposeListeners.add(subscription.cancel);
     if (fireImmediately) Zone.current.runBinaryGuarded(listener, null, subscription.read());
     return SourceSubscriptionProxy(subscription, () {

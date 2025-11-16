@@ -5,7 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:rivertion/src/internals/source_subscriptions.dart';
 import 'package:rivertion/src/source.dart';
 
-class SourceNotifier<T> implements SourceProvider<T> {
+class SourceNotifier<T> with SourceContainer<T> {
   final _listeners = LinkedList<_ListenersEntry<T>>();
   var _mounted = true;
   T _state;
@@ -17,9 +17,9 @@ class SourceNotifier<T> implements SourceProvider<T> {
   bool get mounted => _mounted;
 
   @override
-  Source<T> get source => _Source(this);
+  SourceListenable<T> get source => _Source(this);
 
-  /// The current "state" of this [StateNotifier].
+  /// The current "state" of this [SourceNotifier].
   ///
   /// Updating this variable will synchronously call all the listeners.
   /// Notifying the listeners is O(N) with N the number of listeners.
@@ -79,7 +79,7 @@ class SourceNotifier<T> implements SourceProvider<T> {
   }
 }
 
-/// A [SourceNotifier] that allows modifying its [state] from outside.
+/// A [SourceController] that allows modifying its [state] from outside.
 ///
 /// This avoids having to make a [SourceNotifier] subclass for simple scenarios.
 class SourceController<T> extends SourceNotifier<T> {
@@ -101,7 +101,7 @@ class SourceController<T> extends SourceNotifier<T> {
   void emit(T state) => this.state = state;
 }
 
-final class _Source<T> extends Source<T> {
+final class _Source<T> extends SourceListenable<T> {
   final SourceNotifier<T> _notifier;
 
   _Source(this._notifier);

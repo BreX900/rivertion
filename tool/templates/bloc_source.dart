@@ -2,8 +2,8 @@
 
 import 'dart:async';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:rivertion/rivertion.dart';
+// ignore: depend_on_referenced_packages
+import 'package:bloc/bloc.dart';
 // ignore: implementation_imports
 import 'package:rivertion/src/internals.dart';
 

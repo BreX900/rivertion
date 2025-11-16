@@ -23,9 +23,9 @@ ValueListenableBuilder(
 **After: The Rivertion way**
 ```dart
 SourceBuilder(
-  builder: (context, scope, _) {
+  builder: (context, ref, _) {
     // Rebuilds automatically when the notifier changes
-    final count = scope.watch(counterNotifier.source);
+    final count = ref.watchSource(counterNotifier.source);
     return Text('Count: $count');
   },
 )
@@ -46,23 +46,23 @@ BlocBuilder<CounterCubit, int>(
 **After: The Rivertion way**
 ```dart
 SourceBuilder(
-  builder: (context, scope, _) {
+  builder: (context, ref, _) {
     // The .source extension comes from the generated file
-    final count = scope.watch(counterCubit.source);
+    final count = ref.watchSource(counterCubit.source);
     return Text('Count: $count');
   },
 )
 ```
-You get a single, consistent way (`scope.watch`) to listen to any state source.
+You get a single, consistent way (`ref.watchSource`) to listen to any state source.
 
 ## Core Concepts
 
-### SourceWidget & SourceScope
+### SourceWidget & SourceRef
 
-`SourceWidget` (and its simpler version `SourceBuilder`) is a `StatefulWidget` that provides a `SourceScope` in its `build` method. The scope is the key to interacting with your sources.
+`SourceWidget` (and its simpler version `SourceBuilder`) is a `StatefulWidget` that provides a `SourceRef` in its `build` method. The ref is the key to interacting with your sources.
 
--   `scope.watch(source)`: Subscribes a widget to a `Source`. The widget will rebuild whenever the source's value changes. This is the most common method you'll use.
--   `scope.listen(source, (previous, next) { ... })`: Subscribes to a `Source` to perform actions in response to state changes, like showing a `SnackBar` or navigating. It does *not* cause the widget to rebuild.
+-   `ref.watchSource(source)`: Subscribes a widget to a `Source`. The widget will rebuild whenever the source's value changes. This is the most common method you'll use.
+-   `ref.listenSource(source, (previous, next) { ... })`: Subscribes to a `Source` to perform actions in response to state changes, like showing a `SnackBar` or navigating. It does *not* cause the widget to rebuild.
 
 ### Standalone State: SourceController
 
@@ -72,7 +72,7 @@ For state that doesn't need to be shared with other state management systems, or
 final counterProvider = SourceController(0);
 
 // Watch it in the UI
-final count = scope.watch(counterProvider.source);
+final count = ref.watchSource(counterProvider.source);
 
 // Update it
 counterProvider.state++;
@@ -108,7 +108,7 @@ The `bloc_sources.dart` file provides a `.source` extension on `BlocBase`, insta
 
 ### Riverpod Interoperability
 
-The `source_consumer_widgets.dart` file provides `SourceConsumerWidget` to seamlessly use Riverpod providers within a `SourceWidget`, allowing you to mix and match both systems.
+The `source_consumer_widgets.dart` file provides `SourceConsumerWidget` and `SourceConsumer` to seamlessly use Riverpod providers within a `SourceWidget`, allowing you to mix and match both systems. The `builder` of these widgets will provide a `SourceWidgetRef` that implements both `SourceRef` and `WidgetRef` from Riverpod.
 
 ### Reactive Forms Support
 

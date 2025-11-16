@@ -5,22 +5,19 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 // ignore: implementation_imports
 import 'package:flutter_riverpod/src/internals.dart';
-import 'package:rivertion/rivertion.dart';
 // ignore: implementation_imports
 import 'package:rivertion/src/internals.dart';
 
-final class ConsumerScope extends SourceScope {
-  WidgetRef get ref => context as WidgetRef;
-
-  ConsumerScope._(super._element);
-}
+extension type SourceWidgetRef._(_SourceConsumerStatefulElement _element)
+    implements SourceRef, WidgetRef {}
 
 class SourceConsumer extends SourceConsumerStatefulWidget {
-  final Widget Function(BuildContext context, ConsumerScope scope, Widget? child) builder;
+  final Widget Function(BuildContext context, SourceWidgetRef ref, Widget? child) builder;
+  final Widget? child;
 
-  const SourceConsumer({super.key, required this.builder});
+  const SourceConsumer({super.key, required this.builder, this.child});
 
-  Widget build(BuildContext context, ConsumerScope scope) => builder(context, scope, null);
+  Widget build(BuildContext context, SourceWidgetRef ref) => builder(context, ref, child);
 
   @override
   SourceConsumerState<SourceConsumerStatefulWidget> createState() => _SourceConsumerState();
@@ -29,7 +26,7 @@ class SourceConsumer extends SourceConsumerStatefulWidget {
 abstract class SourceConsumerWidget extends SourceConsumerStatefulWidget {
   const SourceConsumerWidget({super.key});
 
-  Widget build(BuildContext context, ConsumerScope scope);
+  Widget build(BuildContext context, SourceWidgetRef ref);
 
   @override
   SourceConsumerState<SourceConsumerStatefulWidget> createState() => _SourceConsumerState();
@@ -37,7 +34,7 @@ abstract class SourceConsumerWidget extends SourceConsumerStatefulWidget {
 
 class _SourceConsumerState extends SourceConsumerState<SourceConsumerWidget> {
   @override
-  Widget build(BuildContext context) => widget.build(context, scope);
+  Widget build(BuildContext context) => widget.build(context, ref);
 }
 
 abstract class SourceConsumerStatefulWidget extends ConsumerStatefulWidget {
@@ -53,7 +50,9 @@ abstract class SourceConsumerStatefulWidget extends ConsumerStatefulWidget {
 
 abstract class SourceConsumerState<T extends SourceConsumerStatefulWidget>
     extends ConsumerState<T> {
-  late final ConsumerScope scope = ConsumerScope._(context as _SourceConsumerStatefulElement);
+  @override
+  // ignore: overridden_fields
+  late final SourceWidgetRef ref = SourceWidgetRef._(context as _SourceConsumerStatefulElement);
 }
 
 // ignore: invalid_use_of_internal_member

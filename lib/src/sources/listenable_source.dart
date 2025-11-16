@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:rivertion/src/internals.dart';
+import 'package:rivertion/src/internals/source_subscriptions.dart';
 import 'package:rivertion/src/source.dart';
 
 extension SourceListenableExtension<T extends Listenable> on T {

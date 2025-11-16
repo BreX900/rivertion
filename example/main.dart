@@ -34,12 +34,12 @@ class MyApp extends StatelessWidget {
         appBar: AppBar(title: const Text('Rivertion Example')),
         body: Center(
           child: SourceConsumer(
-            builder: (context, scope, _) {
+            builder: (context, ref, _) {
               // Watch the Cubit's state using the .source extension.
-              final cubitCount = scope.watch(counterCubit.source);
+              final cubitCount = ref.watchSource(counterCubit.source);
 
               // Watch the Riverpod provider.
-              final riverpodCount = scope.ref.watch(riverpodCounterProvider);
+              final riverpodCount = ref.watch(riverpodCounterProvider);
 
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,

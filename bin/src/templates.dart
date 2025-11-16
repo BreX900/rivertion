@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:rivertion/rivertion.dart';
 // ignore: implementation_imports
 import 'package:rivertion/src/internals.dart';
 
@@ -277,7 +276,7 @@ final class _ControlSubscription<T> extends SourceSubscriptionBase<T> {
 }
 ''',
   );
-
+  
   static const (String, String) blocSource = (
     'bloc_source.dart',
     '''
@@ -285,8 +284,8 @@ final class _ControlSubscription<T> extends SourceSubscriptionBase<T> {
 
 import 'dart:async';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:rivertion/rivertion.dart';
+// ignore: depend_on_referenced_packages
+import 'package:bloc/bloc.dart';
 // ignore: implementation_imports
 import 'package:rivertion/src/internals.dart';
 
@@ -342,7 +341,7 @@ final class _StateStreamableSourceSubscription<T> extends SourceSubscriptionBase
 }
 ''',
   );
-
+  
   static const (String, String) riverpodSourceConsumer = (
     'riverpod_source_consumer.dart',
     '''
@@ -353,22 +352,19 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 // ignore: implementation_imports
 import 'package:flutter_riverpod/src/internals.dart';
-import 'package:rivertion/rivertion.dart';
 // ignore: implementation_imports
 import 'package:rivertion/src/internals.dart';
 
-final class ConsumerScope extends SourceScope {
-  WidgetRef get ref => context as WidgetRef;
-
-  ConsumerScope._(super._element);
-}
+extension type SourceWidgetRef._(_SourceConsumerStatefulElement _element)
+    implements SourceRef, WidgetRef {}
 
 class SourceConsumer extends SourceConsumerStatefulWidget {
-  final Widget Function(BuildContext context, ConsumerScope scope, Widget? child) builder;
+  final Widget Function(BuildContext context, SourceWidgetRef ref, Widget? child) builder;
+  final Widget? child;
 
-  const SourceConsumer({super.key, required this.builder});
+  const SourceConsumer({super.key, required this.builder, this.child});
 
-  Widget build(BuildContext context, ConsumerScope scope) => builder(context, scope, null);
+  Widget build(BuildContext context, SourceWidgetRef ref) => builder(context, ref, child);
 
   @override
   SourceConsumerState<SourceConsumerStatefulWidget> createState() => _SourceConsumerState();
@@ -377,7 +373,7 @@ class SourceConsumer extends SourceConsumerStatefulWidget {
 abstract class SourceConsumerWidget extends SourceConsumerStatefulWidget {
   const SourceConsumerWidget({super.key});
 
-  Widget build(BuildContext context, ConsumerScope scope);
+  Widget build(BuildContext context, SourceWidgetRef ref);
 
   @override
   SourceConsumerState<SourceConsumerStatefulWidget> createState() => _SourceConsumerState();
@@ -385,7 +381,7 @@ abstract class SourceConsumerWidget extends SourceConsumerStatefulWidget {
 
 class _SourceConsumerState extends SourceConsumerState<SourceConsumerWidget> {
   @override
-  Widget build(BuildContext context) => widget.build(context, scope);
+  Widget build(BuildContext context) => widget.build(context, ref);
 }
 
 abstract class SourceConsumerStatefulWidget extends ConsumerStatefulWidget {
@@ -401,7 +397,9 @@ abstract class SourceConsumerStatefulWidget extends ConsumerStatefulWidget {
 
 abstract class SourceConsumerState<T extends SourceConsumerStatefulWidget>
     extends ConsumerState<T> {
-  late final ConsumerScope scope = ConsumerScope._(context as _SourceConsumerStatefulElement);
+  @override
+  // ignore: overridden_fields
+  late final SourceWidgetRef ref = SourceWidgetRef._(context as _SourceConsumerStatefulElement);
 }
 
 // ignore: invalid_use_of_internal_member
@@ -461,7 +459,7 @@ final class _NotifierStateSourceSubscription<T> extends SourceSubscriptionBase<T
 }
 ''',
   );
-
+  
   static const (String, String) riverpodMutation = (
     'riverpod_mutation.dart',
     r'''
@@ -486,16 +484,16 @@ abstract class MutationRef {
 
   void invalidate(ProviderOrFamily provider) => _container.invalidate(provider);
 
-  T read<T>(ProviderListenable<T> provider) => _container.read(provider);
+  T read<T>(ProviderListenable<T> provider);
 
-  T refresh<T>(Refreshable<T> provider) => _container.refresh(provider);
+  T refresh<T>(Refreshable<T> provider);
 
   void updateProgress(double value);
 }
 
-extension MutationNotififierExtension on ConsumerScope {
+extension MutationNotififierExtension on SourceWidgetRef {
   MutationNotifier<A, R> mutation<A, R>(Future<R> Function(MutationRef ref, A arg) mutator) {
-    final mutation = MutationNotifier<A, R>(() => ref.container, mutator);
+    final mutation = MutationNotifier<A, R>(this, mutator);
     onDispose(mutation.dispose);
     return mutation;
   }
@@ -506,10 +504,10 @@ typedef DataMutationListener<Result> = FutureOr<void> Function(Result result);
 typedef ResultMutationListener<Result> = FutureOr<void> Function(Object? error, Result? result);
 
 class MutationNotifier<TArg, TResult> extends SourceNotifier<MutationState<TResult>> {
-  final ProviderContainer Function() _readContainer;
+  final SourceWidgetRef _ref;
   final Future<TResult> Function(MutationRef ref, TArg arg) _mutator;
 
-  MutationNotifier(this._readContainer, this._mutator) : super(IdleMutation<TResult>());
+  MutationNotifier(this._ref, this._mutator) : super(IdleMutation<TResult>());
 
   void call(
     TArg arg, {
@@ -528,7 +526,7 @@ class MutationNotifier<TArg, TResult> extends SourceNotifier<MutationState<TResu
 
     state = state.toLoading(arg: arg);
 
-    final ref = _MutationRef(_readContainer(), this, arg);
+    final ref = _MutationRef(_ref.container, this, arg);
     try {
       final result = await _mutator(ref, arg);
       ref.dispose();
@@ -795,15 +793,34 @@ class _MutationRef<TArg> extends MutationRef {
   MutationNotifier? _notifier;
   final TArg _arg;
 
+  final _subscriptions = <ProviderListenable, ProviderSubscription>{};
+
   _MutationRef(super._container, this._notifier, this._arg);
+
+  @override
+  T read<T>(ProviderListenable<T> provider) {
+    _subscriptions.putIfAbsent(provider, () => _container.listen(provider, (_, _) {}));
+    return _container.read(provider);
+  }
+
+  @override
+  T refresh<T>(Refreshable<T> provider) {
+    _subscriptions.putIfAbsent(provider, () => _container.listen(provider, (_, _) {}));
+    return _container.refresh(provider);
+  }
 
   @override
   void updateProgress(double value) => _notifier?._updateProgress(_arg, value);
 
   void dispose() {
+    for (final subscription in _subscriptions.values) {
+      subscription.close();
+    }
     _notifier = null;
   }
 }
 ''',
   );
+  
 }
+    

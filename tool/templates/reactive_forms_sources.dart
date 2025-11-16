@@ -4,7 +4,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:rivertion/rivertion.dart';
 // ignore: implementation_imports
 import 'package:rivertion/src/internals.dart';
 

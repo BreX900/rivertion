@@ -8,8 +8,16 @@ typedef SourceListener<T> = void Function(T previous, T state);
 
 typedef SourceImmediatelyListener<T> = void Function(T? previous, T state);
 
+abstract interface class SourceProvider<T> {
+  @internal
+  Source<T> get source;
+}
+
 @immutable
-abstract base class Source<T> {
+abstract base class Source<T> implements SourceProvider<T> {
+  @override
+  Source<T> get source => this;
+
   SourceSubscription<T> listen(SourceListener<T> onChange);
 
   SourceSubscription<T> listenImmediately(SourceImmediatelyListener<T> listener) {

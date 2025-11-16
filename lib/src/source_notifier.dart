@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:meta/meta.dart';
-import 'package:rivertion/src/internals.dart';
+import 'package:rivertion/src/internals/source_subscriptions.dart';
 import 'package:rivertion/src/source.dart';
 
-class SourceNotifier<T> {
+class SourceNotifier<T> implements SourceProvider<T> {
   final _listeners = LinkedList<_ListenersEntry<T>>();
   var _mounted = true;
   T _state;
@@ -16,6 +16,7 @@ class SourceNotifier<T> {
   /// Whether [dispose] was called or not.
   bool get mounted => _mounted;
 
+  @override
   Source<T> get source => _Source(this);
 
   /// The current "state" of this [StateNotifier].

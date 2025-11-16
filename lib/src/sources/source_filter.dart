@@ -5,6 +5,7 @@ import 'package:rivertion/src/source.dart';
 
 @immutable
 final class SourceFilter<T> extends Source<T> {
+  @override
   final Source<T> source;
   final bool Function(T previous, T next) condition;
 

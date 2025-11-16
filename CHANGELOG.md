@@ -1,3 +1,12 @@
+## 4.0.0
+
+**BREAKING**: This version introduces a major refactoring of the widget API to align more closely with Riverpod's patterns and improve usability.
+
+- **`SourceScope` is now `SourceRef`**: The `SourceScope` object, previously passed to `SourceBuilder` and available in `SourceState`, has been replaced with `SourceRef`. This change makes the API more consistent with the broader ecosystem.
+- **New `watchSource` Method**: The `scope.watch()` method has been renamed to `ref.watchSource()` to clarify that it is specifically for watching Rivertion `Source` objects.
+- **Riverpod Interoperability with `SourceWidgetRef`**: The `ConsumerScope` has been replaced by `SourceWidgetRef`, an extension type that implements both `SourceRef` and Riverpod's `WidgetRef`. This allows for direct calls to both `ref.watchSource()` (for Rivertion sources) and `ref.watch()` (for Riverpod providers) from the same `ref` object.
+- **API Cleanup**: Renamed `scope.listen` to `ref.listenSource`, `scope.listenManual` to `ref.listenSourceManual`, `scope.subscribe` to `ref.listenStream`, and `scope.subscribeManual` to `ref.listenStreamManual` for consistency.
+
 ## 3.1.0
 
 - Added ability to filter states emitted by source using `Source.where` method

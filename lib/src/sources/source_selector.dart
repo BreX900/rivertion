@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:rivertion/src/internals.dart';
+import 'package:rivertion/src/internals/source_subscriptions.dart';
 import 'package:rivertion/src/source.dart';
 
 final class SourceSelector<T, R> extends _SourceTransformer<T, R> {
@@ -48,16 +48,16 @@ final class SourceArgSelector<T, R, A> extends _SourceTransformer<T, R> {
 
 @immutable
 abstract base class _SourceTransformer<T, R> extends Source<R> {
-  final Source<T> source;
+  final Source<T> delegate;
 
-  _SourceTransformer(this.source);
+  _SourceTransformer(this.delegate);
 
   R _select(T state);
 
   @override
   SourceSubscription<R> listen(SourceListener<R> listener) {
     _Optional<R>? current;
-    final subscription = source.listen((previousState, currentState) {
+    final subscription = delegate.listen((previousState, currentState) {
       final previous = current ?? _Optional(_select(previousState));
       final next = _Optional(_select(currentState));
       current = next;

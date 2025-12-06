@@ -85,17 +85,30 @@ mixin SourceStatefulElementMixin on StatefulElement implements SourceRef {
   }
 
   @override
-  void listenStream<T>(Stream<T> stream, void Function(T event) listener) {
+  void listenStream<T>(
+    Stream<T> stream,
+    void Function(T event) listener, {
+    void Function(Object error, StackTrace stackTrace)? onError,
+    void Function()? onDone,
+  }) {
     _assertNotDisposed();
-    _listenerRemovers.add(stream.listen(listener).cancel);
+    _listenerRemovers.add(stream.listen(listener, onError: onError, onDone: onDone).cancel);
   }
 
   @override
-  VoidCallback listenStreamManual<T>(Stream<T> stream, void Function(T event) listener) {
+  VoidCallback listenStreamManual<T>(
+    Stream<T> stream,
+    void Function(T event) listener, {
+    void Function(Object error, StackTrace stackTrace)? onError,
+    void Function()? onDone,
+  }) {
     _assertNotDisposed();
-    final disposer = stream.listen(listener).cancel;
-    _onDisposeListeners.add(disposer);
-    return disposer;
+    final subscription = stream.listen(listener, onError: onError, onDone: onDone);
+    _onDisposeListeners.add(subscription.cancel);
+    return () {
+      subscription.cancel();
+      _onDisposeListeners.remove(onDispose);
+    };
   }
 
   @override

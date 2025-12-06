@@ -1,3 +1,7 @@
+## 4.1.0
+**Added**
+- Added `onError` and `onDone` callbacks to `ref.listenStream` and `ref.listenStreamManual` for more comprehensive stream handling.
+
 ## 4.0.0
 
 **BREAKING**: This version introduces a major refactoring of the widget API to align more closely with Riverpod's patterns and improve usability.

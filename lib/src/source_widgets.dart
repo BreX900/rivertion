@@ -175,9 +175,19 @@ abstract interface class SourceRef {
     bool fireImmediately = false,
   });
 
-  void listenStream<T>(Stream<T> stream, void Function(T event) listener);
+  void listenStream<T>(
+    Stream<T> stream,
+    void Function(T event) listener, {
+    void Function(Object error, StackTrace stackTrace)? onError,
+    void Function()? onDone,
+  });
 
-  VoidCallback listenStreamManual<T>(Stream<T> stream, void Function(T event) listener);
+  VoidCallback listenStreamManual<T>(
+    Stream<T> stream,
+    void Function(T event) listener, {
+    void Function(Object error, StackTrace stackTrace)? onError,
+    void Function()? onDone,
+  });
 
   VoidCallback onDispose(VoidCallback onDispose);
 }

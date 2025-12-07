@@ -29,6 +29,27 @@ abstract base class SourceSubscriptionBase<T> extends SourceSubscription<T> {
   }
 }
 
+final class SourceSubscriptionBuilder<T> extends SourceSubscription<T> {
+  final T Function() reader;
+  final void Function() canceler;
+  var _isCancelled = false;
+
+  SourceSubscriptionBuilder(this.reader, this.canceler);
+
+  @override
+  T read() {
+    assert(!_isCancelled, 'Tried to use $runtimeType after `cancel` was called.');
+    return reader();
+  }
+
+  @override
+  void cancel() {
+    _isCancelled = true;
+    canceler();
+  }
+}
+
+@Deprecated('In favour of SourceSubscriptionBuilder')
 final class SourceSubscriptionProxy<T> extends SourceSubscription<T> {
   final SourceSubscription<T> proxy;
   final void Function() onCancel;

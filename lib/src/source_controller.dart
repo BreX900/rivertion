@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart';
 import 'package:rivertion/src/internals/source_subscriptions.dart';
 import 'package:rivertion/src/source.dart';
 
@@ -77,6 +77,9 @@ class SourceNotifier<T> with SourceContainer<T> {
     );
     return true;
   }
+
+  @override
+  String toString() => '$runtimeType<$T>#${shortHash(hashCode)}($state)';
 }
 
 /// A [SourceController] that allows modifying its [state] from outside.
@@ -99,6 +102,9 @@ class SourceController<T> extends SourceNotifier<T> {
 
   /// Equals to a [SourceController.state] setter
   void emit(T state) => this.state = state;
+
+  @override
+  String toString() => 'SourceController<$T>#${shortHash(hashCode)}($state)';
 }
 
 final class _Source<T> extends SourceListenable<T> {

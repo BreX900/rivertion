@@ -57,35 +57,12 @@ abstract base class _SourceTransformer<T, R> extends SourceListenable<R> {
 
   @override
   SourceSubscription<R> listen(SourceListener<R> listener) {
-    _Optional<R>? current;
     final subscription = _source.listenable.listen((previousState, currentState) {
-      final previous = current ?? _Optional(_select(previousState));
-      final next = _Optional(_select(currentState));
-      current = next;
-      if (previous.value == next.value) return;
-      Zone.current.runBinaryGuarded(listener, previous.value, next.value);
+      final previous = _select(previousState);
+      final next = _select(currentState);
+      if (previous == next) return;
+      Zone.current.runBinaryGuarded(listener, previous, next);
     });
-    return _SourceTransformerSubscription(subscription, () {
-      return (current ??= _Optional(_select(subscription.read()))).value;
-    });
+    return SourceSubscriptionBuilder(() => _select(subscription.read()), subscription.cancel);
   }
-}
-
-class _Optional<T> {
-  final T value;
-
-  _Optional(this.value);
-}
-
-final class _SourceTransformerSubscription<T, R> extends SourceSubscriptionBase<R> {
-  final SourceSubscription<T> subscription;
-  final R Function() reader;
-
-  _SourceTransformerSubscription(this.subscription, this.reader);
-
-  @override
-  R onRead() => reader();
-
-  @override
-  void onCancel() => subscription.cancel();
 }

@@ -1,4 +1,12 @@
+
+## 4.1.1
+
+- chore: added a more informative `toString()` override for `SourceNotifier` and `SourceController` to aid in debugging.
+- chore: promoted `select`, `selectWith`, and `where` to be extensions directly on `SourceListenable` for a more consistent and discoverable API. Deprecated older, less direct extension methods on `StateStreamable`, `StateNotifier`, and `ValueListenable`.
+- chore: in `reactive_forms` extensions, `select` was renamed to `sourceBy` to better reflect its purpose and align with the library's naming conventions.
+
 ## 4.1.0
+
 **Added**
 - Added `onError` and `onDone` callbacks to `ref.listenStream` and `ref.listenStreamManual` for more comprehensive stream handling.
 

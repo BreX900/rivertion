@@ -9,19 +9,6 @@ extension SourceListenableExtension<T extends Listenable> on T {
       _ListenableSource(this, selector);
 }
 
-extension SourceValueListenablewExtension<T> on ValueListenable<T> {
-  SourceListenable<T> get source => _ListenableSource(this, _selectValue);
-
-  SourceListenable<R> select<R>(R Function(T state) selector) => source.select(selector);
-
-  SourceListenable<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>
-      source.selectWith(arg, selector);
-
-  SourceListenable<T> where(bool Function(T previous, T next) condition) => source.where(condition);
-
-  static T _selectValue<T>(ValueListenable<T> listenable) => listenable.value;
-}
-
 final class _ListenableSource<T extends Listenable, R> extends SourceListenable<R> {
   final T _listenable;
   final R Function(T listenable) _selector;
@@ -31,6 +18,7 @@ final class _ListenableSource<T extends Listenable, R> extends SourceListenable<
   @override
   SourceSubscription<R> listen(SourceListener<R> listener) {
     var current = _selector(_listenable);
+    assert(current != _listenable, 'Do not return the $T but select its value/property/field.');
     void onChange() {
       final previous = current;
       current = _selector(_listenable);
@@ -39,7 +27,7 @@ final class _ListenableSource<T extends Listenable, R> extends SourceListenable<
     }
 
     _listenable.addListener(onChange);
-    return _ListenableSubscription(_listenable, onChange, () => current);
+    return SourceSubscriptionBuilder(() => current, () => _listenable.removeListener(onChange));
   }
 
   @override
@@ -52,18 +40,4 @@ final class _ListenableSource<T extends Listenable, R> extends SourceListenable<
 
   @override
   int get hashCode => Object.hash(_listenable, _selector);
-}
-
-final class _ListenableSubscription<T extends Listenable, R> extends SourceSubscriptionBase<R> {
-  final T listenable;
-  final VoidCallback listener;
-  final ValueGetter<R> reader;
-
-  _ListenableSubscription(this.listenable, this.listener, this.reader);
-
-  @override
-  R onRead() => reader();
-
-  @override
-  void onCancel() => listenable.removeListener(listener);
 }

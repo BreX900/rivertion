@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:rivertion/rivertion.dart';
+import 'package:rivertion/src/source.dart';
+import 'package:rivertion/src/source_controller.dart';
 import 'package:rivertion/src/sources/source_selector.dart';
 
 class MyState {
@@ -27,7 +28,7 @@ void main() {
 
     setUp(() {
       source = SourceController(MyState(0, 'initial'));
-      selectedSource = source.select((state) => state.count);
+      selectedSource = source.source.select((state) => state.count);
     });
 
     test('should only emit when the selected value changes', () {
@@ -66,7 +67,7 @@ void main() {
 
     setUp(() {
       source = SourceController(MyState(0, 'initial'));
-      selectedSource = source.selectWith('prefix', (arg, state) => '$arg: ${state.name}');
+      selectedSource = source.source.selectWith('prefix', (arg, state) => '$arg: ${state.name}');
     });
 
     test('should only emit when the selected value changes', () {

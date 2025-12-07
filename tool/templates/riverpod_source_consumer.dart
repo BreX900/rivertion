@@ -64,11 +64,14 @@ final class _SourceConsumerStatefulElement extends ConsumerStatefulElement
 extension SourceStateNotifierExtension<T> on StateNotifier<T> {
   SourceListenable<T> get source => _NotifierStateSource(this);
 
+  @Deprecated('In favour of source.select')
   SourceListenable<R> select<R>(R Function(T state) selector) => source.select(selector);
 
+  @Deprecated('In favour of source.selectWith')
   SourceListenable<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>
       source.selectWith(arg, selector);
 
+  @Deprecated('In favour of source.where')
   SourceListenable<T> where(bool Function(T previous, T next) condition) => source.where(condition);
 }
 
@@ -79,15 +82,15 @@ final class _NotifierStateSource<T> extends SourceListenable<T> {
 
   @override
   SourceSubscription<T> listen(SourceListener<T> onChange) {
-    T? current;
+    (T,)? current;
     final listenerRemover = _notifier.addListener(fireImmediately: true, (next) {
       final previous = current;
-      current = next;
+      current = (next,);
       if (previous != null) {
-        Zone.current.runBinaryGuarded(onChange, previous, next);
+        Zone.current.runBinaryGuarded(onChange, previous.$1, next);
       }
     });
-    return _NotifierStateSourceSubscription(() => current as T, listenerRemover);
+    return SourceSubscriptionBuilder(() => current!.$1, listenerRemover);
   }
 
   @override
@@ -99,17 +102,4 @@ final class _NotifierStateSource<T> extends SourceListenable<T> {
 
   @override
   int get hashCode => _notifier.hashCode;
-}
-
-final class _NotifierStateSourceSubscription<T> extends SourceSubscriptionBase<T> {
-  final T Function() _reader;
-  final void Function() _listenerRemover;
-
-  _NotifierStateSourceSubscription(this._reader, this._listenerRemover);
-
-  @override
-  T onRead() => _reader();
-
-  @override
-  void onCancel() => _listenerRemover();
 }

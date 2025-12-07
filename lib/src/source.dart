@@ -26,6 +26,19 @@ abstract base class SourceListenable<T> implements Source<T> {
 }
 
 extension SourceExtensions<T> on Source<T> {
+  @Deprecated('Use source.select')
+  SourceListenable<R> select<R>(R Function(T state) selector) => SourceSelector(this, selector);
+
+  @Deprecated('Use source.select')
+  SourceListenable<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>
+      SourceArgSelector(this, arg, selector);
+
+  @Deprecated('Use source.select')
+  SourceListenable<T> where(bool Function(T previous, T next) condition) =>
+      SourceFilter(this, condition);
+}
+
+extension SourceListenableExtensions<T> on SourceListenable<T> {
   SourceListenable<R> select<R>(R Function(T state) selector) => SourceSelector(this, selector);
 
   SourceListenable<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>

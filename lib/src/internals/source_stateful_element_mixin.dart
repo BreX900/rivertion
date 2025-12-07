@@ -79,7 +79,8 @@ mixin SourceStatefulElementMixin on StatefulElement implements SourceRef {
     final subscription = source.listenable.listen(listener);
     _onDisposeListeners.add(subscription.cancel);
     if (fireImmediately) Zone.current.runBinaryGuarded(listener, null, subscription.read());
-    return SourceSubscriptionProxy(subscription, () {
+    return SourceSubscriptionBuilder(subscription.read, () {
+      subscription.cancel();
       _onDisposeListeners.remove(subscription.cancel);
     });
   }

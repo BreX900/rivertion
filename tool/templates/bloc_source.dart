@@ -10,11 +10,14 @@ import 'package:rivertion/src/internals.dart';
 extension SourceStateStreamableExtension<T> on StateStreamable<T> {
   SourceListenable<T> get source => _StateStreamableSource(this);
 
+  @Deprecated('In favour of source.select')
   SourceListenable<R> select<R>(R Function(T state) selector) => source.select(selector);
 
+  @Deprecated('In favour of source.selectWith')
   SourceListenable<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>
       source.selectWith(arg, selector);
 
+  @Deprecated('In favour of source.where')
   SourceListenable<T> where(bool Function(T previous, T next) condition) => source.where(condition);
 }
 
@@ -34,7 +37,7 @@ final class _StateStreamableSource<T> extends SourceListenable<T> {
       Zone.current.runBinaryGuarded(onChange, previous, next);
     });
 
-    return _StateStreamableSourceSubscription(() => current, streamSubscription);
+    return SourceSubscriptionBuilder(() => current, streamSubscription.cancel);
   }
 
   @override
@@ -46,17 +49,4 @@ final class _StateStreamableSource<T> extends SourceListenable<T> {
 
   @override
   int get hashCode => _stateStreamable.hashCode;
-}
-
-final class _StateStreamableSourceSubscription<T> extends SourceSubscriptionBase<T> {
-  final T Function() _reader;
-  final StreamSubscription<T> _streamSubscription;
-
-  _StateStreamableSourceSubscription(this._reader, this._streamSubscription);
-
-  @override
-  T onRead() => _reader();
-
-  @override
-  void onCancel() => unawaited(_streamSubscription.cancel());
 }

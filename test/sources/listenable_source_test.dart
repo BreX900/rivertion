@@ -1,32 +1,23 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:rivertion/rivertion.dart';
 import 'package:rivertion/src/sources/listenable_source.dart';
 
-// A simple class to test the select method
-class MyState {
-  final int count;
-  final String name;
+class _Notifier extends ChangeNotifier {
+  late int _value = 0;
 
-  MyState(this.count, this.name);
+  int get value => _value;
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is MyState &&
-          runtimeType == other.runtimeType &&
-          count == other.count &&
-          name == other.name;
-
-  @override
-  int get hashCode => count.hashCode ^ name.hashCode;
+  set value(int value) {
+    _value = value;
+    notifyListeners();
+  }
 }
 
 void main() {
   group('SourceValueListenableExtension', () {
     test('should emit the new value when the ValueListenable changes', () {
-      final notifier = ValueNotifier(0);
-      final source = notifier.source;
+      final notifier = _Notifier();
+      final source = notifier.sourceBy((notifier) => notifier.value);
 
       final states = <int>[];
       final subscription = source.listen((_, state) => states.add(state));
@@ -39,8 +30,8 @@ void main() {
     });
 
     test('should not emit a value if the value is the same', () {
-      final notifier = ValueNotifier(0);
-      final source = notifier.source;
+      final notifier = _Notifier();
+      final source = notifier.sourceBy((notifier) => notifier.value);
 
       final states = <int>[];
       final subscription = source.listen((_, state) => states.add(state));
@@ -53,8 +44,8 @@ void main() {
     });
 
     test('subscription.read() should return the current value', () {
-      final notifier = ValueNotifier(0);
-      final source = notifier.source;
+      final notifier = _Notifier();
+      final source = notifier.sourceBy((notifier) => notifier.value);
       final subscription = source.listen((_, _) {});
 
       expect(subscription.read(), 0);
@@ -66,8 +57,8 @@ void main() {
     });
 
     test('should stop listening when the subscription is cancelled', () {
-      final notifier = ValueNotifier(0);
-      final source = notifier.source;
+      final notifier = _Notifier();
+      final source = notifier.sourceBy((notifier) => notifier.value);
 
       final states = <int>[];
       final subscription = source.listen((_, state) => states.add(state));
@@ -80,33 +71,9 @@ void main() {
     });
   });
 
-  group('SourceValueListenableExtension.select', () {
-    test('should only emit when the selected value changes', () {
-      final notifier = ValueNotifier(MyState(0, 'initial'));
-      final source = notifier.select((state) => state.count);
-
-      final states = <int>[];
-      final subscription = source.listen((_, state) => states.add(state));
-
-      // Change the name, should not emit
-      notifier.value = MyState(0, 'changed');
-      expect(states, isEmpty);
-
-      // Change the count, should emit
-      notifier.value = MyState(1, 'changed');
-      expect(states, [1]);
-
-      // Change the count again
-      notifier.value = MyState(2, 'changed');
-      expect(states, [1, 2]);
-
-      subscription.cancel();
-    });
-  });
-
   group('SourceListenableExtension.sourceBy', () {
     test('should emit when the selected value from a ChangeNotifier changes', () {
-      final notifier = ChangeNotifier();
+      final notifier = _Notifier();
       var count = 0;
       final source = notifier.sourceBy((_) => count);
 
@@ -131,22 +98,38 @@ void main() {
   });
 
   group('_ListenableSource equality', () {
-    test('should be equal if listenable are identical', () {
-      final notifier = ValueNotifier(0);
+    test('should be equal if listenable and listener are identical', () {
+      final notifier = ChangeNotifier();
 
-      final source1 = notifier.source;
-      final source2 = notifier.source;
+      void listener(_) {}
+
+      final source1 = notifier.sourceBy(listener);
+      final source2 = notifier.sourceBy(listener);
 
       expect(source1, equals(source2));
       expect(source1.hashCode, equals(source2.hashCode));
     });
 
     test('should not be equal if listenables are different', () {
-      final notifier1 = ValueNotifier(0);
-      final notifier2 = ValueNotifier(0);
+      final notifier1 = ChangeNotifier();
+      final notifier2 = ChangeNotifier();
 
-      final source1 = notifier1.source;
-      final source2 = notifier2.source;
+      void listener(_) {}
+
+      final source1 = notifier1.sourceBy(listener);
+      final source2 = notifier2.sourceBy(listener);
+
+      expect(source1, isNot(equals(source2)));
+    });
+
+    test('should not be equal if listeners are different', () {
+      final notifier = ChangeNotifier();
+
+      void listener1(_) {}
+      void listener2(_) {}
+
+      final source1 = notifier.sourceBy(listener1);
+      final source2 = notifier.sourceBy(listener2);
 
       expect(source1, isNot(equals(source2)));
     });

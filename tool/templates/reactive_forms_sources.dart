@@ -10,13 +10,17 @@ import 'package:rivertion/src/internals.dart';
 extension AbstractControlStateSource<V> on AbstractControl<V> {
   SourceListenable<AbstractControlState<V?>> get source => _AbstractControlStateSource(this);
 
+  @Deprecated('In favour of source.select')
   SourceListenable<R> select<R>(R Function(AbstractControl<V> control) selector) =>
       _FormControlSource(this).select(selector);
 }
 
 extension ControlStateSource<C extends AbstractControl<Object?>> on C {
-  SourceListenable<R> select<R>(R Function(C control) selector) =>
+  SourceListenable<R> sourceBy<R>(R Function(C control) selector) =>
       _FormControlSource(this).select(selector);
+
+  @Deprecated('In favour of sourceBy')
+  SourceListenable<R> select<R>(R Function(C control) selector) => sourceBy(selector);
 }
 
 extension AbstractControlStateSourceExtensions<V> on SourceListenable<AbstractControlState<V>> {
@@ -108,6 +112,7 @@ class AbstractControlState<V> {
 
 @immutable
 class FormControlState<V> extends AbstractControlState<V?> {
+  final V? defaultValue;
   final bool hasFocus;
 
   const FormControlState({
@@ -116,6 +121,7 @@ class FormControlState<V> extends AbstractControlState<V?> {
     required super.touched,
     required super.errors,
     required super.status,
+    required this.defaultValue,
     required this.hasFocus,
   });
 
@@ -129,10 +135,11 @@ class FormControlState<V> extends AbstractControlState<V?> {
           touched == other.touched &&
           errors == other.errors &&
           status == other.status &&
+          defaultValue == other.defaultValue &&
           hasFocus == other.hasFocus;
 
   @override
-  int get hashCode => Object.hash(value, pristine, touched, errors, status, hasFocus);
+  int get hashCode => Object.hash(value, pristine, touched, errors, status, defaultValue, hasFocus);
 }
 
 final class _AbstractControlStateSource<V>
@@ -140,15 +147,13 @@ final class _AbstractControlStateSource<V>
   _AbstractControlStateSource(super.control);
 
   @override
-  AbstractControlState<V?> read() {
-    return AbstractControlState(
-      value: control.value,
-      pristine: control.pristine,
-      touched: control.touched,
-      errors: control.errors,
-      status: control.status,
-    );
-  }
+  AbstractControlState<V?> read() => AbstractControlState(
+    value: control.value,
+    pristine: control.pristine,
+    touched: control.touched,
+    errors: control.errors,
+    status: control.status,
+  );
 }
 
 final class _FormControlStateSource<V>
@@ -159,16 +164,15 @@ final class _FormControlStateSource<V>
   Stream<Object?>? get changes => control.focusChanges;
 
   @override
-  FormControlState<V> read() {
-    return FormControlState(
-      value: control.value,
-      pristine: control.pristine,
-      touched: control.touched,
-      errors: control.errors,
-      status: control.status,
-      hasFocus: control.hasFocus,
-    );
-  }
+  FormControlState<V> read() => FormControlState(
+    value: control.value,
+    pristine: control.pristine,
+    touched: control.touched,
+    errors: control.errors,
+    status: control.status,
+    defaultValue: control.defaultValue,
+    hasFocus: control.hasFocus,
+  );
 }
 
 abstract base class _AbstractControlStateSourceBase<

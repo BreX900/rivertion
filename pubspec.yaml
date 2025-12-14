@@ -1,6 +1,6 @@
 name: rivertion
 description: A Flutter state management library that bridges the gap between traditional state holders and a modern, reactive consumption model.
-version: 4.1.1
+version: 4.2.0
 homepage: https://github.com/BreX900/mek-packages/tree/main/rivertion
 
 environment:

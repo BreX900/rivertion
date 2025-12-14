@@ -1,4 +1,9 @@
 
+## 4.2.0
+- feat: added source extension for `TabController`, `ExpansibleController` and `FocusNode`
+- feat: expose source extensions for `TextEditingValue`, `Object?`, `Iterable<T>`
+- chore: improved performance for `reactive_forms` sources
+
 ## 4.1.1
 
 - chore: added a more informative `toString()` override for `SourceNotifier` and `SourceController` to aid in debugging.

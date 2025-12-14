@@ -1,278 +1,193 @@
-// Version: 3.0.0
+// Version: 4.0.0
 
-import 'dart:async';
-
-import 'package:flutter/foundation.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 // ignore: implementation_imports
 import 'package:rivertion/src/internals.dart';
 
-extension AbstractControlStateSource<V> on AbstractControl<V> {
-  SourceListenable<AbstractControlState<V?>> get source => _AbstractControlStateSource(this);
-
-  @Deprecated('In favour of source.select')
-  SourceListenable<R> select<R>(R Function(AbstractControl<V> control) selector) =>
-      _FormControlSource(this).select(selector);
+extension SourceAbstractControlExtension<C extends AbstractControl<T>, T> on C {
+  AbstractControlSource<C, T> get source => AbstractControlSource._(this);
 }
 
-extension ControlStateSource<C extends AbstractControl<Object?>> on C {
-  SourceListenable<R> sourceBy<R>(R Function(C control) selector) =>
-      _FormControlSource(this).select(selector);
+final class AbstractControlSource<C extends AbstractControl<T>, T> {
+  final C _control;
 
-  @Deprecated('In favour of sourceBy')
-  SourceListenable<R> select<R>(R Function(C control) selector) => sourceBy(selector);
+  SourceListenable<ControlStatus> get status => _onStatus.select(_status);
+  SourceListenable<bool> get pristine => _onStatus.select(_pristine);
+  SourceListenable<bool> get dirty => _onStatus.select(_dirty);
+  SourceListenable<Map<String, Object>> get errors => _onStatus.select(_errors);
+  SourceListenable<bool> get hasErrors => _onStatus.select(_hasErrors);
+  SourceListenable<bool> hasError(String errorCode, [String? path]) =>
+      _onStatus.selectWith((errorCode, path), _hasError);
+  SourceListenable<Object?> getError(String errorCode, [String? path]) =>
+      _onStatus.selectWith((errorCode, path), _getError);
+
+  SourceListenable<T?> get value => _AbstractControlValueSourceListenable(_control);
+  SourceListenable<bool> get isEmpty => value.select(_isEmpty);
+
+  SourceListenable<bool> get touched => _AbstractControlTouchSourceListenable(_control);
+
+  AbstractControlSource._(this._control);
+
+  SourceListenable<AbstractControl<Object?>> get _onStatus =>
+      _AbstractControlStatusSourceListenable(_control);
+
+  static ControlStatus _status(AbstractControl<Object?> control) => control.status;
+  static bool _pristine(AbstractControl<Object?> control) => control.pristine;
+  static bool _dirty(AbstractControl<Object?> control) => control.dirty;
+  static Map<String, Object> _errors(AbstractControl<Object?> control) => control.errors;
+  static bool _hasErrors(AbstractControl<Object?> control) => control.hasErrors;
+  static bool _hasError((String, String?) arg, AbstractControl<Object?> control) =>
+      control.hasError(arg.$1, arg.$2);
+  static Object? _getError((String, String?) arg, AbstractControl<Object?> control) =>
+      control.getError(arg.$1, arg.$2);
+
+  static bool _isEmpty(Object? value) => switch (value) {
+    null => true,
+    String() => value.isEmpty,
+    Iterable() => value.isEmpty,
+    Map() => value.isEmpty,
+    _ => false,
+  };
 }
 
-extension AbstractControlStateSourceExtensions<V> on SourceListenable<AbstractControlState<V>> {
-  SourceListenable<bool> get hasValue => select(_hasValue);
-  SourceListenable<V?> get value => select(_value);
-  SourceListenable<bool> get pristine => select(_pristine);
-  SourceListenable<bool> get dirty => select(_dirty);
-  SourceListenable<bool> get touched => select(_touched);
-  SourceListenable<ControlStatus> get status => select(_status);
-  SourceListenable<MapEntry<String, Object>?> get error => select(_error);
-  SourceListenable<bool> get isEmpty => select(_isEmpty);
+extension SourcesFormGroupExtensions on AbstractControlSource<FormGroup, Map<String, Object?>> {
+  SourceListenable<Map<String, AbstractControl<Object?>>> get controls =>
+      _FormControlCollectionSourceListenable(_control, _controls);
 
-  static bool _hasValue<V>(AbstractControlState<V> state) => state.value != null;
-  static V? _value<V>(AbstractControlState<V> state) => state.value;
-  static bool _pristine<V>(AbstractControlState<V> state) => state.pristine;
-  static bool _dirty<V>(AbstractControlState<V> state) => state.dirty;
-  static bool _touched<V>(AbstractControlState<V> state) => state.touched;
-  static ControlStatus _status<V>(AbstractControlState<V> state) => state.status;
-  static MapEntry<String, Object>? _error<V>(AbstractControlState<V> state) => state.error;
-  static bool _isEmpty(AbstractControlState<Object?> state) {
-    final value = state.value;
-    return value == null ||
-        (value is String && value.isEmpty) ||
-        (value is Iterable && value.isEmpty) ||
-        (value is Map && value.isEmpty);
-  }
+  static Map<String, AbstractControl<Object?>> _controls(FormGroup control) => control.controls;
+}
+
+extension SourcesFormArrayExtensions<T> on AbstractControlSource<FormArray<T>, List<T?>> {
+  SourceListenable<List<AbstractControl<T>>> get controls =>
+      _FormControlCollectionSourceListenable(_control, _controls);
+
+  static List<AbstractControl<T>> _controls<T>(FormArray<T> control) => control.controls;
 }
 
 extension ControlStatusSourceExtensions on SourceListenable<ControlStatus> {
-  SourceListenable<bool> get enabled => select(_enabled);
-  SourceListenable<bool> get disabled => select(_disabled);
+  SourceListenable<bool> get pending => select(_pending);
   SourceListenable<bool> get valid => select(_valid);
+  SourceListenable<bool> get invalid => select(_invalid);
+  SourceListenable<bool> get disabled => select(_disabled);
+  SourceListenable<bool> get enabled => select(_enabled);
 
-  static bool _enabled(ControlStatus status) => status != ControlStatus.disabled;
-  static bool _disabled(ControlStatus status) => status == ControlStatus.disabled;
+  static bool _pending(ControlStatus status) => status == ControlStatus.pending;
   static bool _valid(ControlStatus status) => status == ControlStatus.valid;
+  static bool _invalid(ControlStatus status) => status == ControlStatus.invalid;
+  static bool _disabled(ControlStatus status) => status == ControlStatus.disabled;
+  static bool _enabled(ControlStatus status) => !_disabled(status);
 }
 
-extension FormControlStateSource<V> on FormControl<V> {
-  SourceListenable<FormControlState<V>> get source => _FormControlStateSource(this);
-}
+final class _AbstractControlStatusSourceListenable
+    extends SourceListenable<AbstractControl<Object?>> {
+  final AbstractControl<Object?> _control;
 
-extension FormControlStateSourceExtensions<V> on SourceListenable<FormControlState<V?>> {
-  SourceListenable<bool> get hasFocus => select(_hasFocus);
+  _AbstractControlStatusSourceListenable(this._control);
 
-  static bool _hasFocus<V>(FormControlState<V?> state) => state.hasFocus;
-}
-
-@immutable
-class AbstractControlState<V> {
-  final V? value;
-  final bool pristine;
-  final bool touched;
-  final Map<String, Object> errors;
-  final ControlStatus status;
-
-  bool get dirty => !pristine;
-  bool get hasErrors => errors.isNotEmpty;
-
-  MapEntry<String, Object>? get error {
-    if (!hasErrors || !_showErrors) return null;
-    return errors.entries.first;
+  @override
+  SourceSubscription<AbstractControl<Object?>> listen(
+    SourceListener<AbstractControl<Object?>> listener,
+  ) {
+    final subscription = _control.statusChanged.listen((_) {
+      listener(_control, _control);
+    });
+    return SourceSubscriptionBuilder(() => _control, subscription.cancel);
   }
 
-  bool get _showErrors => status == ControlStatus.invalid && touched;
-
-  const AbstractControlState({
-    required this.value,
-    required this.pristine,
-    required this.touched,
-    required this.errors,
-    required this.status,
-  });
-
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AbstractControlState<V> &&
+      other is _AbstractControlStatusSourceListenable &&
           runtimeType == other.runtimeType &&
-          value == other.value &&
-          pristine == other.pristine &&
-          touched == other.touched &&
-          errors == other.errors &&
-          status == other.status;
+          identical(_control, other._control);
 
   @override
-  int get hashCode => Object.hash(value, pristine, touched, errors, status);
+  int get hashCode => Object.hash(runtimeType, _control);
 }
 
-@immutable
-class FormControlState<V> extends AbstractControlState<V?> {
-  final V? defaultValue;
-  final bool hasFocus;
+final class _AbstractControlValueSourceListenable<T> extends SourceListenable<T?> {
+  final AbstractControl<T> _control;
 
-  const FormControlState({
-    required super.value,
-    required super.pristine,
-    required super.touched,
-    required super.errors,
-    required super.status,
-    required this.defaultValue,
-    required this.hasFocus,
-  });
+  _AbstractControlValueSourceListenable(this._control);
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is FormControlState<V> &&
-          runtimeType == other.runtimeType &&
-          value == other.value &&
-          pristine == other.pristine &&
-          touched == other.touched &&
-          errors == other.errors &&
-          status == other.status &&
-          defaultValue == other.defaultValue &&
-          hasFocus == other.hasFocus;
-
-  @override
-  int get hashCode => Object.hash(value, pristine, touched, errors, status, defaultValue, hasFocus);
-}
-
-final class _AbstractControlStateSource<V>
-    extends _AbstractControlStateSourceBase<AbstractControl<V>, AbstractControlState<V?>> {
-  _AbstractControlStateSource(super.control);
-
-  @override
-  AbstractControlState<V?> read() => AbstractControlState(
-    value: control.value,
-    pristine: control.pristine,
-    touched: control.touched,
-    errors: control.errors,
-    status: control.status,
-  );
-}
-
-final class _FormControlStateSource<V>
-    extends _AbstractControlStateSourceBase<FormControl<V>, FormControlState<V>> {
-  _FormControlStateSource(super.control);
-
-  @override
-  Stream<Object?>? get changes => control.focusChanges;
-
-  @override
-  FormControlState<V> read() => FormControlState(
-    value: control.value,
-    pristine: control.pristine,
-    touched: control.touched,
-    errors: control.errors,
-    status: control.status,
-    defaultValue: control.defaultValue,
-    hasFocus: control.hasFocus,
-  );
-}
-
-abstract base class _AbstractControlStateSourceBase<
-  TControl extends AbstractControl<Object?>,
-  TState extends AbstractControlState<Object?>
->
-    extends SourceListenable<TState> {
-  final TControl control;
-
-  _AbstractControlStateSourceBase(this.control);
-
-  Stream<Object?>? get changes => null;
-
-  TState read();
-
-  @override
-  SourceSubscription<TState> listen(SourceListener<TState> listener) {
-    var current = read();
-    void onChange(_) {
+  SourceSubscription<T?> listen(SourceListener<T?> listener) {
+    var current = _control.value;
+    final subscription = _control.valueChanges.listen((value) {
       final previous = current;
-      current = read();
+      current = value;
       if (previous == current) return;
-      Zone.current.runBinaryGuarded(listener, previous, current);
-    }
-
-    return _ControlSubscription(
-      reader: () => current,
-      statusSubscription: control.statusChanged.listen(onChange),
-      valueSubscription: control.valueChanges.listen(onChange),
-      touchSubscription: control.touchChanges.listen(onChange),
-      changesSubscription: changes?.listen(onChange),
-    );
+      listener(previous, current);
+    });
+    return SourceSubscriptionBuilder(() => current, subscription.cancel);
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _AbstractControlStateSourceBase<TControl, TState> &&
+      other is _AbstractControlValueSourceListenable<T> &&
           runtimeType == other.runtimeType &&
-          control == other.control;
+          identical(_control, other._control);
 
   @override
-  int get hashCode => control.hashCode;
+  int get hashCode => Object.hash(runtimeType, _control);
 }
 
-final class _FormControlSource<TControl extends AbstractControl<Object?>>
-    extends SourceListenable<TControl> {
-  final TControl control;
+final class _AbstractControlTouchSourceListenable extends SourceListenable<bool> {
+  final AbstractControl<Object?> _control;
 
-  _FormControlSource(this.control);
-
-  Stream<Object?>? get changes => null;
+  _AbstractControlTouchSourceListenable(this._control);
 
   @override
-  SourceSubscription<TControl> listen(SourceListener<TControl> listener) {
-    void onChange(_) => Zone.current.runBinaryGuarded(listener, control, control);
-
-    return _ControlSubscription(
-      reader: () => control,
-      statusSubscription: control.statusChanged.listen(onChange),
-      valueSubscription: control.valueChanges.listen(onChange),
-      touchSubscription: control.touchChanges.listen(onChange),
-      changesSubscription: changes?.listen(onChange),
-    );
+  SourceSubscription<bool> listen(SourceListener<bool> listener) {
+    var current = _control.touched;
+    final subscription = _control.touchChanges.listen((value) {
+      final previous = current;
+      current = value;
+      if (previous == current) return;
+      listener(previous, current);
+    });
+    return SourceSubscriptionBuilder(() => current, subscription.cancel);
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _FormControlSource<TControl> &&
+      other is _AbstractControlTouchSourceListenable &&
           runtimeType == other.runtimeType &&
-          control == other.control;
+          identical(_control, other._control);
 
   @override
-  int get hashCode => control.hashCode;
+  int get hashCode => Object.hash(runtimeType, _control);
 }
 
-final class _ControlSubscription<T> extends SourceSubscriptionBase<T> {
-  final T Function() reader;
-  final StreamSubscription<ControlStatus> statusSubscription;
-  final StreamSubscription<Object?> valueSubscription;
-  final StreamSubscription<bool> touchSubscription;
-  final StreamSubscription<Object?>? changesSubscription;
+final class _FormControlCollectionSourceListenable<C extends FormControlCollection, R>
+    extends SourceListenable<R> {
+  final C _control;
+  final R Function(C control) _selector;
 
-  _ControlSubscription({
-    required this.reader,
-    required this.statusSubscription,
-    required this.valueSubscription,
-    required this.touchSubscription,
-    required this.changesSubscription,
-  });
+  _FormControlCollectionSourceListenable(this._control, this._selector);
 
   @override
-  T onRead() => reader();
-
-  @override
-  void onCancel() {
-    unawaited(statusSubscription.cancel());
-    unawaited(valueSubscription.cancel());
-    unawaited(touchSubscription.cancel());
-    unawaited(changesSubscription?.cancel());
+  SourceSubscription<R> listen(SourceListener<R> listener) {
+    var current = _selector(_control);
+    final subscription = _control.collectionChanges.listen((value) {
+      final previous = current;
+      current = _selector(_control);
+      if (previous == current) return;
+      listener(previous, current);
+    });
+    return SourceSubscriptionBuilder(() => current, subscription.cancel);
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _FormControlCollectionSourceListenable<C, R> &&
+          runtimeType == other.runtimeType &&
+          identical(_control, other._control) &&
+          _selector == other._selector;
+
+  @override
+  int get hashCode => Object.hash(runtimeType, _control, _selector);
 }

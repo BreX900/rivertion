@@ -1,4 +1,4 @@
-// Version: 3.0.0
+// Version: 4.0.0
 
 import 'dart:async';
 
@@ -63,16 +63,6 @@ final class _SourceConsumerStatefulElement extends ConsumerStatefulElement
 
 extension SourceStateNotifierExtension<T> on StateNotifier<T> {
   SourceListenable<T> get source => _NotifierStateSource(this);
-
-  @Deprecated('In favour of source.select')
-  SourceListenable<R> select<R>(R Function(T state) selector) => source.select(selector);
-
-  @Deprecated('In favour of source.selectWith')
-  SourceListenable<R> selectWith<R, A>(A arg, R Function(A arg, T state) selector) =>
-      source.selectWith(arg, selector);
-
-  @Deprecated('In favour of source.where')
-  SourceListenable<T> where(bool Function(T previous, T next) condition) => source.where(condition);
 }
 
 final class _NotifierStateSource<T> extends SourceListenable<T> {
@@ -82,15 +72,19 @@ final class _NotifierStateSource<T> extends SourceListenable<T> {
 
   @override
   SourceSubscription<T> listen(SourceListener<T> onChange) {
-    (T,)? current;
+    var isFirstFire = true;
+    late T current;
     final listenerRemover = _notifier.addListener(fireImmediately: true, (next) {
-      final previous = current;
-      current = (next,);
-      if (previous != null) {
-        Zone.current.runBinaryGuarded(onChange, previous.$1, next);
+      if (isFirstFire) {
+        isFirstFire = false;
+        current = next;
+      } else {
+        final previous = current;
+        current = next;
+        Zone.current.runBinaryGuarded(onChange, previous, next);
       }
     });
-    return SourceSubscriptionBuilder(() => current!.$1, listenerRemover);
+    return SourceSubscriptionBuilder(() => current, listenerRemover);
   }
 
   @override
@@ -98,7 +92,7 @@ final class _NotifierStateSource<T> extends SourceListenable<T> {
       identical(this, other) ||
       other is _NotifierStateSource<T> &&
           runtimeType == other.runtimeType &&
-          _notifier == other._notifier;
+          identical(_notifier, other._notifier);
 
   @override
   int get hashCode => _notifier.hashCode;

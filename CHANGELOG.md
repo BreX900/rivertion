@@ -1,4 +1,11 @@
 
+## 4.3.0
+- feat: added `SourceScope` widget to watch a source without `SourceWidget` using `context.watch(soruce)`
+- fix: cancel subscription
+
+## 4.2.1
+- fix: fixed incorrect mapping template name
+
 ## 4.2.0
 - feat: added source extension for `TabController`, `ExpansibleController` and `FocusNode`
 - feat: expose source extensions for `TextEditingValue`, `Object?`, `Iterable<T>`

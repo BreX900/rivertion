@@ -6,7 +6,7 @@ import 'package:rivertion/src/internals/source_subscriptions.dart';
 import 'package:rivertion/src/source.dart';
 
 class SourceNotifier<T> with SourceContainer<T> {
-  final _listeners = LinkedList<_ListenersEntry<T>>();
+  final _listeners = LinkedList<_SourceSubscription<T>>();
   var _mounted = true;
   T _state;
 
@@ -17,7 +17,7 @@ class SourceNotifier<T> with SourceContainer<T> {
   bool get mounted => _mounted;
 
   @override
-  SourceListenable<T> get source => _Source(this);
+  SourceListenable<T> get source => _SourceProxy(this);
 
   /// The current "state" of this [SourceNotifier].
   ///
@@ -41,7 +41,7 @@ class SourceNotifier<T> with SourceContainer<T> {
     if (previousState == state) return;
     if (_listeners.isEmpty) return;
 
-    _ListenersEntry<T>? currentEntry = _listeners.first;
+    _SourceSubscription<T>? currentEntry = _listeners.first;
     while (currentEntry != null) {
       final previousEntry = currentEntry;
       currentEntry = previousEntry.next;
@@ -107,41 +107,40 @@ class SourceController<T> extends SourceNotifier<T> {
   String toString() => 'SourceController<$T>#${shortHash(hashCode)}($state)';
 }
 
-final class _Source<T> extends SourceListenable<T> {
+final class _SourceProxy<T> extends SourceListenable<T> {
   final SourceNotifier<T> _notifier;
 
-  _Source(this._notifier);
+  _SourceProxy(this._notifier);
 
   @override
   SourceSubscription<T> listen(SourceListener<T> listener) {
     assert(_notifier._debugIsMounted());
-    final listenersEntry = _ListenersEntry(listener);
-    _notifier._listeners.add(listenersEntry);
-    return _SourceSubscription(_notifier, listenersEntry);
+    final subscription = _SourceSubscription(_notifier, listener);
+    _notifier._listeners.add(subscription);
+    return subscription;
   }
 
   @override
-  bool operator ==(Object other) => other is _Source<T> && identical(_notifier, other._notifier);
+  bool operator ==(Object other) =>
+      other is _SourceProxy<T> && identical(_notifier, other._notifier);
 
   @override
   int get hashCode => _notifier.hashCode;
 }
 
-final class _ListenersEntry<T> extends LinkedListEntry<_ListenersEntry<T>> {
+final class _SourceSubscription<T> extends LinkedListEntry<_SourceSubscription<T>>
+    with SourceSubscriptionBase<T> {
+  final SourceNotifier<T> _source;
   final SourceListener<T> listener;
 
-  _ListenersEntry(this.listener);
-}
-
-final class _SourceSubscription<T> extends SourceSubscriptionBase<T> {
-  final SourceNotifier<T> _source;
-  final _ListenersEntry<T> _listenersEntry;
-
-  _SourceSubscription(this._source, this._listenersEntry);
+  _SourceSubscription(this._source, this.listener);
 
   @override
   T onRead() => _source._state;
 
   @override
-  void onCancel() => _listenersEntry.unlink();
+  void onCancel() {
+    if (list == null) return;
+    unlink();
+  }
 }

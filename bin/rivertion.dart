@@ -57,7 +57,7 @@ void _run({required List<String> templates, required String output}) {
       'reactive_forms' => Templates.reactiveFormsSources,
       'bloc' => Templates.blocSource,
       'riverpod' => Templates.riverpodSourceConsumer,
-      'riverpod_mutation' => Templates.blocSource,
+      'riverpod_mutation' => Templates.riverpodMutation,
       _ => throw UnimplementedError(),
     };
 

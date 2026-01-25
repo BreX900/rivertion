@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:meta/meta.dart';
+import 'package:flutter/widgets.dart';
 import 'package:rivertion/src/sources/source_filter.dart';
 import 'package:rivertion/src/sources/source_selector.dart';
 
@@ -48,7 +48,7 @@ extension SourceListenableExtensions<T> on SourceListenable<T> {
       SourceFilter(this, condition);
 }
 
-abstract base class SourceSubscription<T> {
+abstract class SourceSubscription<T> {
   T read();
 
   void cancel();

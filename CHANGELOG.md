@@ -1,7 +1,8 @@
 
-## 4.3.0
-- feat: added `SourceScope` widget to watch a source without `SourceWidget` using `context.watch(soruce)`
-- fix: cancel subscription
+## 4.2.2
+- fix: cancel controller subscription
+- fix: not emit status update on reactive_forms template
+- feat: added `SourceScope` widget to watch a source without `SourceWidget` using `context.watch(soruce)` on experimental folder
 
 ## 4.2.1
 - fix: fixed incorrect mapping template name

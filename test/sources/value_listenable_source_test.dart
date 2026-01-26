@@ -35,6 +35,7 @@ void main() {
 
       expect(states, [1, 2]);
       subscription.cancel();
+      subscription.cancel(); // Ensure can cancel subscription many times
     });
 
     test('should not emit a value if the value is the same', () {
@@ -49,6 +50,7 @@ void main() {
 
       expect(states, isEmpty);
       subscription.cancel();
+      subscription.cancel(); // Ensure can cancel subscription many times
     });
 
     test('subscription.read() should return the current value', () {
@@ -62,6 +64,7 @@ void main() {
 
       expect(subscription.read(), 5);
       subscription.cancel();
+      subscription.cancel(); // Ensure can cancel subscription many times
     });
 
     test('should stop listening when the subscription is cancelled', () {
@@ -73,6 +76,7 @@ void main() {
 
       notifier.value = 1;
       subscription.cancel();
+      subscription.cancel(); // Ensure can cancel subscription many times
       notifier.value = 2;
 
       expect(states, [1]);

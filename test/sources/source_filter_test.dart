@@ -19,6 +19,7 @@ void main() {
 
       expect(states, [2, 4]);
       subscription.cancel();
+      subscription.cancel(); // Ensure can cancel subscription many times
     });
 
     test('should not emit if the condition is never met', () {
@@ -35,6 +36,7 @@ void main() {
 
       expect(states, isEmpty);
       subscription.cancel();
+      subscription.cancel(); // Ensure can cancel subscription many times
     });
 
     test('should stop listening when the subscription is cancelled', () {
@@ -46,6 +48,7 @@ void main() {
 
       source.state = 1;
       subscription.cancel();
+      subscription.cancel(); // Ensure can cancel subscription many times
       source.state = 2;
 
       expect(states, [1]);

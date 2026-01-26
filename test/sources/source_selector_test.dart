@@ -48,6 +48,7 @@ void main() {
       expect(states, [1]);
 
       subscription.cancel();
+      subscription.cancel(); // Ensure can cancel subscription many times
     });
 
     test('read() should return the current selected value', () {
@@ -58,6 +59,7 @@ void main() {
       expect(subscription.read(), 5);
 
       subscription.cancel();
+      subscription.cancel(); // Ensure can cancel subscription many times
     });
   });
 
@@ -83,6 +85,7 @@ void main() {
       expect(states, ['prefix: changed']);
 
       subscription.cancel();
+      subscription.cancel(); // Ensure can cancel subscription many times
     });
 
     test('read() should return the current selected value with argument', () {
@@ -93,6 +96,7 @@ void main() {
       expect(subscription.read(), 'prefix: new');
 
       subscription.cancel();
+      subscription.cancel(); // Ensure can cancel subscription many times
     });
   });
 

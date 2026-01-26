@@ -2,7 +2,6 @@ library;
 
 export 'src/source.dart';
 export 'src/source_controller.dart';
-export 'src/source_scope.dart';
 export 'src/source_widgets.dart';
 export 'src/sources/flutter/expansible_controller_source.dart';
 export 'src/sources/flutter/focus_node_source.dart';

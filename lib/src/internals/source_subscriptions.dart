@@ -18,7 +18,6 @@ abstract base mixin class SourceSubscriptionBase<T> implements SourceSubscriptio
 
   @override
   void cancel() {
-    _debugIsCancelled();
     onCancel();
     _isCancelled = true;
   }

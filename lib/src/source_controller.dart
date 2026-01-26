@@ -121,6 +121,9 @@ final class _SourceProxy<T> extends SourceListenable<T> {
   }
 
   @override
+  String toString() => 'SourceListenable($_notifier)';
+
+  @override
   bool operator ==(Object other) =>
       other is _SourceProxy<T> && identical(_notifier, other._notifier);
 

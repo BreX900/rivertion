@@ -88,14 +88,16 @@ final class _AbstractControlStatusSourceListenable<C extends AbstractControl<Obj
 
   @override
   SourceSubscription<R> listen(SourceListener<R> listener) {
-    var current = _selector(_arg, _control);
-    final subscription = _control.statusChanged.listen((_) {
-      final previous = current;
-      current = _selector(_arg, _control);
-      if (previous == current) return;
-      listener(previous, current);
+    return SourceSubscription.viaAdapter(listener, (context) {
+      context.state = _selector(_arg, _control);
+
+      final subscription = _control.statusChanged.listen((_) {
+        final next = _selector(_arg, _control);
+        if (Source.equalsDeep(context.state, next)) return;
+        context.state = next;
+      });
+      return subscription.cancel;
     });
-    return SourceSubscriptionBuilder(() => current, subscription.cancel);
   }
 
   @override
@@ -118,14 +120,15 @@ final class _AbstractControlValueSourceListenable<T> extends SourceListenable<T?
 
   @override
   SourceSubscription<T?> listen(SourceListener<T?> listener) {
-    var current = _control.value;
-    final subscription = _control.valueChanges.listen((value) {
-      final previous = current;
-      current = value;
-      if (previous == current) return;
-      listener(previous, current);
+    return SourceSubscription.viaAdapter(listener, (context) {
+      context.state = _control.value;
+
+      final subscription = _control.valueChanges.listen((next) {
+        if (Source.equalsDeep(context.state, next)) return;
+        context.state = next;
+      });
+      return subscription.cancel;
     });
-    return SourceSubscriptionBuilder(() => current, subscription.cancel);
   }
 
   @override
@@ -146,14 +149,15 @@ final class _AbstractControlTouchSourceListenable extends SourceListenable<bool>
 
   @override
   SourceSubscription<bool> listen(SourceListener<bool> listener) {
-    var current = _control.touched;
-    final subscription = _control.touchChanges.listen((value) {
-      final previous = current;
-      current = value;
-      if (previous == current) return;
-      listener(previous, current);
+    return SourceSubscription.viaAdapter(listener, (context) {
+      context.state = _control.touched;
+
+      final subscription = _control.touchChanges.listen((next) {
+        if (context.state == next) return;
+        context.state = next;
+      });
+      return subscription.cancel;
     });
-    return SourceSubscriptionBuilder(() => current, subscription.cancel);
   }
 
   @override
@@ -167,7 +171,7 @@ final class _AbstractControlTouchSourceListenable extends SourceListenable<bool>
   int get hashCode => Object.hash(runtimeType, _control);
 }
 
-final class _FormControlCollectionSourceListenable<C extends FormControlCollection, R>
+final class _FormControlCollectionSourceListenable<C extends FormControlCollection<Object?>, R>
     extends SourceListenable<R> {
   final C _control;
   final R Function(C control) _selector;
@@ -176,14 +180,16 @@ final class _FormControlCollectionSourceListenable<C extends FormControlCollecti
 
   @override
   SourceSubscription<R> listen(SourceListener<R> listener) {
-    var current = _selector(_control);
-    final subscription = _control.collectionChanges.listen((value) {
-      final previous = current;
-      current = _selector(_control);
-      if (previous == current) return;
-      listener(previous, current);
+    return SourceSubscription.viaAdapter(listener, (context) {
+      context.state = _selector(_control);
+
+      final subscription = _control.collectionChanges.listen((_) {
+        final next = _selector(_control);
+        if (Source.equalsDeep(context.state, next)) return;
+        context.state = next;
+      });
+      return subscription.cancel;
     });
-    return SourceSubscriptionBuilder(() => current, subscription.cancel);
   }
 
   @override

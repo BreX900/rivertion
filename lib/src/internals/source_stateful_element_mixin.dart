@@ -10,7 +10,6 @@ import 'package:rivertion/src/source_widgets.dart';
 /// The [Element] mixin for a [StatefulElement]
 mixin SourceStatefulElementMixin on StatefulElement implements SourceRef {
   ValueListenable<bool>? _tickerNotifier;
-  var _isDirty = false;
   final _listenerRemovers = <VoidCallback>[];
   var _dependencies = <Source<Object?>, SourceSubscription<Object?>>{};
   var _oldDependencies = <Source<Object?>, SourceSubscription<Object?>>{};
@@ -58,7 +57,9 @@ mixin SourceStatefulElementMixin on StatefulElement implements SourceRef {
   T watchSource<T>(Source<T> source) {
     _assertNotDisposed();
     final subscription = _dependencies.putIfAbsent(source, () {
-      return source.listenable.listen(_listenerForRebuild);
+      final subscription = source.listenable.listen(_listenerForRebuild);
+      if (!(_tickerNotifier?.value ?? true)) subscription.pause();
+      return subscription;
     });
     return subscription.read() as T;
   }
@@ -79,10 +80,7 @@ mixin SourceStatefulElementMixin on StatefulElement implements SourceRef {
     final subscription = source.listenable.listen(listener);
     _onDisposeListeners.add(subscription.cancel);
     if (fireImmediately) Zone.current.runBinaryGuarded(listener, null, subscription.read());
-    return SourceSubscriptionBuilder(subscription.read, () {
-      subscription.cancel();
-      _onDisposeListeners.remove(subscription.cancel);
-    });
+    return _SourceWidgetSubscription(subscription, _onDisposeListeners);
   }
 
   @override
@@ -123,18 +121,16 @@ mixin SourceStatefulElementMixin on StatefulElement implements SourceRef {
   }
 
   void _onTickerModeChange() {
-    if (!(_tickerNotifier?.value ?? true)) return;
-    if (_isDirty) markNeedsBuild();
-    _isDirty = false;
-  }
-
-  void _listenerForRebuild(_, _) {
-    if (_tickerNotifier?.value ?? true) {
-      markNeedsBuild();
-    } else {
-      _isDirty = true;
+    for (final subscription in _dependencies.values) {
+      if (_tickerNotifier!.value) {
+        subscription.resume();
+      } else {
+        subscription.pause();
+      }
     }
   }
+
+  void _listenerForRebuild(_, _) => markNeedsBuild();
 
   void _assertNotDisposed() {
     if (mounted) return;
@@ -157,5 +153,17 @@ mixin SourceStatefulElementMixin on StatefulElement implements SourceRef {
       }
       _oldDependencies = const {};
     }
+  }
+}
+
+class _SourceWidgetSubscription<T> extends ProxySourceSubscription<T> {
+  final List<VoidCallback> _onDisposeListeners;
+
+  _SourceWidgetSubscription(super.subscription, this._onDisposeListeners);
+
+  @override
+  void cancel() {
+    super.cancel();
+    _onDisposeListeners.remove(subscription.cancel);
   }
 }

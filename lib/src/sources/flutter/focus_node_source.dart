@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:rivertion/rivertion.dart';
+import 'package:rivertion/src/source.dart';
+import 'package:rivertion/src/sources/listenable_source.dart';
 
 extension FocusNodeExtension on FocusNode {
   FocusNodeSource get source => FocusNodeSource._(this);

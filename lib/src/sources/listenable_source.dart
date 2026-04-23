@@ -1,39 +1,37 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
-import 'package:rivertion/src/internals/source_subscriptions.dart';
 import 'package:rivertion/src/source.dart';
 
 extension SourceListenableExtension<T extends Listenable> on T {
   SourceListenable<R> sourceBy<R>(R Function(T listenable) selector) =>
-      _ListenableSource(this, selector);
+      _ListenableSourceListenable(this, selector);
 }
 
-final class _ListenableSource<T extends Listenable, R> extends SourceListenable<R> {
+final class _ListenableSourceListenable<T extends Listenable, R> extends SourceListenable<R> {
   final T _listenable;
   final R Function(T listenable) _selector;
 
-  _ListenableSource(this._listenable, this._selector);
+  _ListenableSourceListenable(this._listenable, this._selector);
 
   @override
   SourceSubscription<R> listen(SourceListener<R> listener) {
-    var current = _selector(_listenable);
-    assert(current != _listenable, 'Do not return the $T but select its value/property/field.');
-    void onChange() {
-      final previous = current;
-      current = _selector(_listenable);
-      if (previous == current) return;
-      Zone.current.runBinaryGuarded(listener, previous, current);
-    }
+    return SourceSubscription.viaAdapter(listener, (context) {
+      context.state = _selector(_listenable);
 
-    _listenable.addListener(onChange);
-    return SourceSubscriptionBuilder(() => current, () => _listenable.removeListener(onChange));
+      void onChange() {
+        final next = _selector(_listenable);
+        if (Source.equalsDeep(context.state, next)) return;
+        context.state = next;
+      }
+
+      _listenable.addListener(onChange);
+      return () => _listenable.removeListener(onChange);
+    });
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _ListenableSource<T, R> &&
+      other is _ListenableSourceListenable<T, R> &&
           runtimeType == other.runtimeType &&
           identical(_listenable, other._listenable) &&
           _selector == other._selector;

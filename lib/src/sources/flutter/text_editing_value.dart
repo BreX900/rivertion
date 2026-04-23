@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart';
-import 'package:rivertion/rivertion.dart';
+import 'package:rivertion/src/source.dart';
 
 extension SourceTextEditingValueExtension on SourceListenable<TextEditingValue> {
   SourceListenable<String> get text => select(_text);

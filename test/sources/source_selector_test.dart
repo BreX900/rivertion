@@ -105,8 +105,8 @@ void main() {
       final source = SourceController(0);
       int selector(int n) => n;
 
-      final selector1 = SourceSelector(source, selector);
-      final selector2 = SourceSelector(source, selector);
+      final selector1 = SelectorSourceListenable(source, selector);
+      final selector2 = SelectorSourceListenable(source, selector);
 
       expect(selector1, equals(selector2));
       expect(selector1.hashCode, equals(selector2.hashCode));
@@ -117,8 +117,8 @@ void main() {
       String selector(String arg, int n) => '$arg: $n';
       const arg = 'value';
 
-      final selector1 = SourceArgSelector(source, arg, selector);
-      final selector2 = SourceArgSelector(source, arg, selector);
+      final selector1 = ArgSelectorSourceListenable(source, arg, selector);
+      final selector2 = ArgSelectorSourceListenable(source, arg, selector);
 
       expect(selector1, equals(selector2));
       expect(selector1.hashCode, equals(selector2.hashCode));

@@ -12,10 +12,7 @@ extension SourcesRefExtension on Ref {
   SourceSubscription<T> listenSource<T>(Source<T> source, SourceListener<T> listener) {
     final subscription = source.listenable.listen(listener);
     final dispositionRemover = onDispose(subscription.cancel);
-    return SourceSubscriptionBuilder(subscription.read, () {
-      dispositionRemover();
-      subscription.cancel();
-    });
+    return _RefSourceSubscription(subscription, dispositionRemover);
   }
 
   SourceSubscription<T> listenSourceImmediately<T>(
@@ -24,9 +21,18 @@ extension SourcesRefExtension on Ref {
   ) {
     final subscription = source.listenable.listenImmediately(listener);
     final dispositionRemover = onDispose(subscription.cancel);
-    return SourceSubscriptionBuilder(subscription.read, () {
-      dispositionRemover();
-      subscription.cancel();
-    });
+    return _RefSourceSubscription(subscription, dispositionRemover);
+  }
+}
+
+class _RefSourceSubscription<T> extends ProxySourceSubscription<T> {
+  final void Function() _dispositionRemover;
+
+  _RefSourceSubscription(super.subscription, this._dispositionRemover);
+
+  @override
+  void cancel() {
+    super.cancel();
+    _dispositionRemover();
   }
 }

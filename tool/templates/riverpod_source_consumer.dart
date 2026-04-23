@@ -1,7 +1,5 @@
 // Version: 4.0.0
 
-import 'dart:async';
-
 import 'package:flutter/widgets.dart';
 // ignore: implementation_imports
 import 'package:flutter_riverpod/src/internals.dart';
@@ -62,35 +60,27 @@ final class _SourceConsumerStatefulElement extends ConsumerStatefulElement
 }
 
 extension SourceStateNotifierExtension<T> on StateNotifier<T> {
-  SourceListenable<T> get source => _NotifierStateSource(this);
+  SourceListenable<T> get source => _StateNotifierSourceListenable(this);
 }
 
-final class _NotifierStateSource<T> extends SourceListenable<T> {
+final class _StateNotifierSourceListenable<T> extends SourceListenable<T> {
   final StateNotifier<T> _notifier;
 
-  _NotifierStateSource(this._notifier);
+  _StateNotifierSourceListenable(this._notifier);
 
   @override
-  SourceSubscription<T> listen(SourceListener<T> onChange) {
-    var isFirstFire = true;
-    late T current;
-    final listenerRemover = _notifier.addListener(fireImmediately: true, (next) {
-      if (isFirstFire) {
-        isFirstFire = false;
-        current = next;
-      } else {
-        final previous = current;
-        current = next;
-        Zone.current.runBinaryGuarded(onChange, previous, next);
-      }
+  SourceSubscription<T> listen(SourceListener<T> listener) {
+    return SourceSubscription.viaAdapter(listener, (context) {
+      return _notifier.addListener(fireImmediately: true, (next) {
+        context.state = next;
+      });
     });
-    return SourceSubscriptionBuilder(() => current, listenerRemover);
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _NotifierStateSource<T> &&
+      other is _StateNotifierSourceListenable<T> &&
           runtimeType == other.runtimeType &&
           identical(_notifier, other._notifier);
 

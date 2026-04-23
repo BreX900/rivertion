@@ -6,7 +6,7 @@ import 'package:rivertion/src/internals/source_subscriptions.dart';
 import 'package:rivertion/src/source.dart';
 
 class SourceNotifier<T> with SourceContainer<T> {
-  final _listeners = LinkedList<_SourceSubscription<T>>();
+  final _listeners = LinkedList<_NotifierSourceSubscription<T>>();
   var _mounted = true;
   T _state;
 
@@ -17,7 +17,7 @@ class SourceNotifier<T> with SourceContainer<T> {
   bool get mounted => _mounted;
 
   @override
-  SourceListenable<T> get source => _SourceProxy(this);
+  SourceListenable<T> get source => _NotifierSourceListenable(this);
 
   /// The current "state" of this [SourceNotifier].
   ///
@@ -41,10 +41,12 @@ class SourceNotifier<T> with SourceContainer<T> {
     if (previousState == state) return;
     if (_listeners.isEmpty) return;
 
-    _SourceSubscription<T>? currentEntry = _listeners.first;
+    _NotifierSourceSubscription<T>? currentEntry = _listeners.first;
     while (currentEntry != null) {
       final previousEntry = currentEntry;
       currentEntry = previousEntry.next;
+
+      if (previousEntry.isPaused) continue;
       try {
         previousEntry.listener(previousState, state);
       } catch (error, stackTrace) {
@@ -107,15 +109,15 @@ class SourceController<T> extends SourceNotifier<T> {
   String toString() => 'SourceController<$T>#${shortHash(hashCode)}($state)';
 }
 
-final class _SourceProxy<T> extends SourceListenable<T> {
+final class _NotifierSourceListenable<T> extends SourceListenable<T> {
   final SourceNotifier<T> _notifier;
 
-  _SourceProxy(this._notifier);
+  _NotifierSourceListenable(this._notifier);
 
   @override
   SourceSubscription<T> listen(SourceListener<T> listener) {
     assert(_notifier._debugIsMounted());
-    final subscription = _SourceSubscription(_notifier, listener);
+    final subscription = _NotifierSourceSubscription(_notifier, listener);
     _notifier._listeners.add(subscription);
     return subscription;
   }
@@ -125,25 +127,56 @@ final class _SourceProxy<T> extends SourceListenable<T> {
 
   @override
   bool operator ==(Object other) =>
-      other is _SourceProxy<T> && identical(_notifier, other._notifier);
+      other is _NotifierSourceListenable<T> && identical(_notifier, other._notifier);
 
   @override
   int get hashCode => _notifier.hashCode;
 }
 
-final class _SourceSubscription<T> extends LinkedListEntry<_SourceSubscription<T>>
-    with SourceSubscriptionBase<T> {
-  final SourceNotifier<T> _source;
-  final SourceListener<T> listener;
+final class _NotifierSourceSubscription<T> extends LinkedListEntry<_NotifierSourceSubscription<T>>
+    with SourceSubscription<T>, SourceSubscriptionDebuggable<T> {
+  final SourceNotifier<T> _notifier;
+  final SourceListener<T> _listener;
+  var _isPaused = false;
+  (T previous, T next)? _pausedState;
 
-  _SourceSubscription(this._source, this.listener);
+  _NotifierSourceSubscription(this._notifier, this._listener);
 
   @override
-  T onRead() => _source._state;
+  bool get isPaused => _isPaused;
 
   @override
-  void onCancel() {
+  T read() {
+    debugIsCancelled();
+    return _notifier._state;
+  }
+
+  @override
+  void pause() {
+    debugIsCancelled();
+    _isPaused = true;
+  }
+
+  @override
+  void resume() {
+    debugIsCancelled();
+    _isPaused = false;
+    if (_pausedState case (T previous, T next)) listener(previous, next);
+    _pausedState = null;
+  }
+
+  @override
+  void cancel() {
+    super.cancel();
     if (list == null) return;
     unlink();
+  }
+
+  void listener(T previous, T next) {
+    if (_isPaused) {
+      _pausedState = (previous, next);
+    } else {
+      _listener(previous, next);
+    }
   }
 }

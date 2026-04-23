@@ -7,7 +7,7 @@ void main() {
     test('should only emit when the condition is met', () {
       final source = SourceController(0);
       // This filter will only allow even numbers to be emitted
-      final filteredSource = SourceFilter(source, (previous, next) => next % 2 == 0);
+      final filteredSource = FilterSourceListenable(source, (previous, next) => next % 2 == 0);
 
       final states = <int>[];
       final subscription = filteredSource.listen((_, state) => states.add(state));
@@ -25,7 +25,7 @@ void main() {
     test('should not emit if the condition is never met', () {
       final source = SourceController(0);
       // This filter will never allow any value
-      final filteredSource = SourceFilter(source, (previous, next) => false);
+      final filteredSource = FilterSourceListenable(source, (previous, next) => false);
 
       final states = <int>[];
       final subscription = filteredSource.listen((_, state) => states.add(state));
@@ -41,7 +41,7 @@ void main() {
 
     test('should stop listening when the subscription is cancelled', () {
       final source = SourceController(0);
-      final filteredSource = SourceFilter(source, (previous, next) => true);
+      final filteredSource = FilterSourceListenable(source, (previous, next) => true);
 
       final states = <int>[];
       final subscription = filteredSource.listen((_, state) => states.add(state));
@@ -60,8 +60,8 @@ void main() {
       final source = SourceController(0);
       bool condition(int p, int n) => n.isEven;
 
-      final filter1 = SourceFilter(source, condition);
-      final filter2 = SourceFilter(source, condition);
+      final filter1 = FilterSourceListenable(source, condition);
+      final filter2 = FilterSourceListenable(source, condition);
 
       expect(filter1, equals(filter2));
       expect(filter1.hashCode, equals(filter2.hashCode));
@@ -72,8 +72,8 @@ void main() {
       final source2 = SourceController(0);
       bool condition(int p, int n) => n.isEven;
 
-      final filter1 = SourceFilter(source1, condition);
-      final filter2 = SourceFilter(source2, condition);
+      final filter1 = FilterSourceListenable(source1, condition);
+      final filter2 = FilterSourceListenable(source2, condition);
 
       expect(filter1, isNot(equals(filter2)));
     });
@@ -83,8 +83,8 @@ void main() {
       bool condition1(int p, int n) => n.isEven;
       bool condition2(int p, int n) => n.isOdd;
 
-      final filter1 = SourceFilter(source, condition1);
-      final filter2 = SourceFilter(source, condition2);
+      final filter1 = FilterSourceListenable(source, condition1);
+      final filter2 = FilterSourceListenable(source, condition2);
 
       expect(filter1, isNot(equals(filter2)));
     });

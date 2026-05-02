@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:rivertion/src/source.dart';
 
 extension SourceValueListenablewExtension<T> on ValueListenable<T> {
+  @Deprecated('In favour of ValueListenable.provider extension')
   SourceListenable<T> get source => _ValueSourceListenable(this);
 }
 

@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
-import '../tool/templates/bloc_source.dart';
-import '../tool/templates/riverpod_source_consumer.dart';
-
 // A Riverpod provider.
 final riverpodCounterProvider = StateProvider((ref) => 0);
 

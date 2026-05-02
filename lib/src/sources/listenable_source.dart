@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:rivertion/src/source.dart';
 
 extension SourceListenableExtension<T extends Listenable> on T {
+  @Deprecated('In favour of Listenable.provider extension')
   SourceListenable<R> sourceBy<R>(R Function(T listenable) selector) =>
       _ListenableSourceListenable(this, selector);
 }

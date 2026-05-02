@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:rivertion/src/internals/source_subscriptions.dart';
 import 'package:rivertion/src/source.dart';
 
+@Deprecated('In favour of flutter:ValueListenable or bloc:Cubit or state_notifier:StateNotifier')
 class SourceNotifier<T> with SourceContainer<T> {
   final _listeners = LinkedList<_NotifierSourceSubscription<T>>();
   var _mounted = true;
@@ -87,6 +88,7 @@ class SourceNotifier<T> with SourceContainer<T> {
 /// A [SourceController] that allows modifying its [state] from outside.
 ///
 /// This avoids having to make a [SourceNotifier] subclass for simple scenarios.
+@Deprecated('In favour of flutter:ValueListenable or bloc:Cubit or state_notifier:StateNotifier')
 class SourceController<T> extends SourceNotifier<T> {
   /// Initialize the state of [SourceController].
   SourceController(super._state);

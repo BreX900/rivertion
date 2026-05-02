@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:rivertion/src/internals.dart';
 
+@Deprecated('In favour of flutter_riverpod:WidgetRef')
 abstract interface class SourceRef {
   /// The [BuildContext] of the widget associated to this [WidgetRef].
   ///
@@ -192,6 +193,7 @@ abstract interface class SourceRef {
   VoidCallback onDispose(VoidCallback onDispose);
 }
 
+@Deprecated('In favour of flutter_riverpod:Consumer')
 class SourceBuilder extends SourceWidget {
   final Widget Function(BuildContext context, SourceRef ref, Widget? child) builder;
   final Widget? child;
@@ -202,6 +204,7 @@ class SourceBuilder extends SourceWidget {
   Widget build(BuildContext context, SourceRef ref) => builder(context, ref, child);
 }
 
+@Deprecated('In favour of flutter_riverpod:ConsumerWidget')
 abstract class SourceWidget extends SourceStatefulWidget {
   const SourceWidget({super.key});
 
@@ -243,6 +246,7 @@ class _SourceState extends SourceState<SourceWidget> {
 ///   }
 /// }
 /// ```
+@Deprecated('In favour of flutter_riverpod:ConsumerStatefulWidget')
 abstract class SourceStatefulWidget extends StatefulWidget {
   const SourceStatefulWidget({super.key});
 
@@ -282,6 +286,7 @@ abstract class SourceStatefulWidget extends StatefulWidget {
 ///   }
 /// }
 /// ```
+@Deprecated('In favour of flutter_riverpod:ConsumerState')
 abstract class SourceState<T extends SourceStatefulWidget> extends State<T> {
   late final SourceRef ref = context as SourceRef;
 }

@@ -54,9 +54,9 @@ void _run({required List<String> templates, required String output}) {
 
   for (final template in templates) {
     final (name, content) = switch (template) {
-      'reactive_forms' => Templates.reactiveFormsSources,
-      'bloc' => Templates.blocSource,
-      'riverpod' => Templates.riverpodSourceConsumer,
+      'reactive_forms' => Templates.reactiveFormsProviders,
+      'bloc' => Templates.blocProvider,
+      // 'riverpod' => Templates.riverpodSourceConsumer,
       'riverpod_mutation' => Templates.riverpodMutation,
       _ => throw UnimplementedError(),
     };

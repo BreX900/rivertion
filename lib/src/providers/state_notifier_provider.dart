@@ -25,16 +25,17 @@ class _StateNotifierNotifier<T> extends Notifier<T> {
 
   @override
   T build() {
-    late final T initialState;
-    ref.onDispose(
-      notifier.addListener(fireImmediately: true, (state) {
-        if (ref.isFirstBuild) {
-          initialState = state;
-        } else {
-          this.state = state;
-        }
-      }),
-    );
-    return initialState;
+    var hasCurrent = false;
+    late T current;
+    final listenerRemover = notifier.addListener(fireImmediately: true, (state) {
+      if (hasCurrent) {
+        this.state = state;
+      } else {
+        current = state;
+        hasCurrent = true;
+      }
+    });
+    ref.onDispose(listenerRemover);
+    return current;
   }
 }

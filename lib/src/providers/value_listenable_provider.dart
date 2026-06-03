@@ -5,8 +5,7 @@ import 'package:riverpod/src/internals.dart';
 // ignore: invalid_use_of_internal_member
 final _family = NotifierProviderFamily.internal((_) => throw UnimplementedError());
 
-extension ValueListenableProviderExtension<TListenable extends ValueListenable<T>, T>
-    on TListenable {
+extension ValueListenableProviderExtension<TListenable extends ValueNotifier<T>, T> on TListenable {
   // ignore: invalid_use_of_internal_member
   ProviderListenable<T> get provider => NotifierProvider.internal(
     () => _ValueListenableNotifier(this),

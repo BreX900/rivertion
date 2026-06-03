@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
+import '../tool/templates/bloc_provider.dart';
+
 // A Riverpod provider.
 final riverpodCounterProvider = StateProvider((ref) => 0);
 
@@ -30,10 +32,10 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         appBar: AppBar(title: const Text('Rivertion Example')),
         body: Center(
-          child: SourceConsumer(
+          child: Consumer(
             builder: (context, ref, _) {
               // Watch the Cubit's state using the .source extension.
-              final cubitCount = ref.watchSource(counterCubit.source);
+              final cubitCount = ref.watch(counterCubit.provider);
 
               // Watch the Riverpod provider.
               final riverpodCount = ref.watch(riverpodCounterProvider);

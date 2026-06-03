@@ -1,3 +1,5 @@
+## 5.0.0
+- feat: all sources now is exposed via provider
 
 ## 4.2.2
 - fix: cancel controller subscription

@@ -54,7 +54,7 @@ import 'package:riverpod/src/internals.dart';
 // ignore: invalid_use_of_internal_member
 final _family = NotifierProviderFamily.internal((_) => throw UnimplementedError());
 
-extension AbstractControlProviderExtension<T extends AbstractControl> on T {
+extension AbstractControlProviderExtension<T extends AbstractControl<Object?>> on T {
   ProviderListenable<T> get provider =>
       // ignore: invalid_use_of_internal_member
       NotifierProvider.internal(
@@ -69,7 +69,7 @@ extension AbstractControlProviderExtension<T extends AbstractControl> on T {
       );
 }
 
-class _AbstractControlNotifier<T extends AbstractControl> extends Notifier<T> {
+class _AbstractControlNotifier<T extends AbstractControl<Object?>> extends Notifier<T> {
   final T control;
 
   _AbstractControlNotifier(this.control);
@@ -108,7 +108,7 @@ extension ProviderAbstractControlExtensions<T extends AbstractControl<V>, V>
   };
 }
 
-extension FormControlCollectionProviderExtension<T extends FormControlCollection> on T {
+extension FormControlCollectionProviderExtension<T extends FormControlCollection<Object?>> on T {
   ProviderListenable<T> get provider =>
       // ignore: invalid_use_of_internal_member
       NotifierProvider.internal(
@@ -123,7 +123,7 @@ extension FormControlCollectionProviderExtension<T extends FormControlCollection
       );
 }
 
-class _FormControlCollectionNotifier<T extends FormControlCollection> extends Notifier<T> {
+class _FormControlCollectionNotifier<T extends FormControlCollection<Object?>> extends Notifier<T> {
   final T control;
 
   _FormControlCollectionNotifier(this.control);

@@ -1,5 +1,8 @@
 library;
 
+export 'src/observables/state_notifier_observable.dart';
+export 'src/observables/value_notifier_observable.dart';
+export 'src/observables/value_observable.dart';
 export 'src/providers/flutter/expansible_controller_provider.dart';
 export 'src/providers/flutter/focus_node_provider.dart';
 export 'src/providers/flutter/scroll_controller_provider.dart';
@@ -10,12 +13,3 @@ export 'src/providers/primitive_providers.dart';
 export 'src/providers/state_notifier_provider.dart';
 export 'src/providers/stream_provider.dart';
 export 'src/providers/value_listenable_provider.dart';
-export 'src/source.dart';
-export 'src/source_controller.dart';
-export 'src/source_widgets.dart';
-export 'src/sources/flutter/expansible_controller_source.dart';
-export 'src/sources/flutter/focus_node_source.dart';
-export 'src/sources/flutter/tab_controller_source.dart';
-export 'src/sources/flutter/text_editing_value.dart';
-export 'src/sources/listenable_source.dart';
-export 'src/sources/value_listenable_source.dart';

@@ -5,7 +5,7 @@ import 'package:riverpod/src/internals.dart';
 // ignore: invalid_use_of_internal_member
 final _family = NotifierProviderFamily.internal((_) => throw UnimplementedError());
 
-extension ListenableProviderExtension<T extends Listenable> on T {
+extension ListenableProviderExtension<T extends ChangeNotifier> on T {
   ProviderListenable<T> get provider =>
       // ignore: invalid_use_of_internal_member
       NotifierProvider.internal(
@@ -20,7 +20,7 @@ extension ListenableProviderExtension<T extends Listenable> on T {
       );
 }
 
-class _ListenableNotifier<T extends Listenable> extends Notifier<T> {
+class _ListenableNotifier<T extends ChangeNotifier> extends Notifier<T> {
   final T listenable;
 
   _ListenableNotifier(this.listenable);

@@ -1,3 +1,6 @@
+## 5.0.1
+- fix: listenable provider dispose
+
 ## 5.0.0
 - feat: all sources now is exposed via provider
 

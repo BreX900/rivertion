@@ -28,7 +28,7 @@ class _ListenableNotifier<T extends ChangeNotifier> extends Notifier<T> {
   @override
   T build() {
     listenable.addListener(ref.notifyListeners);
-    ref.onDispose(ref.notifyListeners);
+    ref.onDispose(() => listenable.removeListener(ref.notifyListeners));
     return listenable;
   }
 }
